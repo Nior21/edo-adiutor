@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:ExternalDataProcessor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:core="http://g5.1c.ru/v8/dt/mcore" xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="c488d88b-4ff3-45b5-97be-92607a5a1db5">
+  <producedTypes>
+    <objectType typeId="464b89f8-495c-4c07-956a-f29238a639d7" valueTypeId="97f77bea-0b55-4963-84c8-347b683cddd2"/>
+  </producedTypes>
+  <name>ПомощникДляЭДО</name>
+  <synonym>
+    <key>ru</key>
+    <value>Помощник для ЭДО</value>
+  </synonym>
+  <containedObjects classId="c3831ec8-d8d5-4f93-8a22-f9bfae07327f" objectId="37dd0d9e-cf0e-43cd-a341-0281da08338f"/>
+  <defaultForm>ExternalDataProcessor.ПомощникДляЭДО.Form.Форма</defaultForm>
+  <attributes uuid="8f6589a5-5642-4066-9f21-8a50fdfa3422">
+    <name>АдресHTML</name>
+    <synonym>
+      <key>ru</key>
+      <value>Адрес HTML</value>
+    </synonym>
+    <type>
+      <types>String</types>
+      <stringQualifiers/>
+    </type>
+    <minValue xsi:type="core:UndefinedValue"/>
+    <maxValue xsi:type="core:UndefinedValue"/>
+  </attributes>
+  <attributes uuid="7094dc67-2ec2-4952-a5c1-31fe896544c1">
+    <name>АдресМакета</name>
+    <synonym>
+      <key>ru</key>
+      <value>Адрес макета</value>
+    </synonym>
+    <type>
+      <types>String</types>
+      <stringQualifiers/>
+    </type>
+    <minValue xsi:type="core:UndefinedValue"/>
+    <maxValue xsi:type="core:UndefinedValue"/>
+  </attributes>
+  <forms uuid="b37d091d-04e1-4dce-8faf-4d96482ca0ae">
+    <name>Форма</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+  <templates uuid="040630f8-0902-433f-bbe1-354764cca1e3">
+    <name>ReactПриложение</name>
+    <synonym>
+      <key>ru</key>
+      <value>React приложение</value>
+    </synonym>
+    <comment>inline HTML (IIFE JS + CSS, без type=module)</comment>
+    <templateType>BinaryData</templateType>
+  </templates>
+</mdclass:ExternalDataProcessor>

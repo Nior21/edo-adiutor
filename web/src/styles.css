@@ -1,0 +1,335 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #f3f5f8;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.layout {
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: #667085;
+}
+
+.banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.banner-info {
+  background: #e8f1ff;
+  color: #1d4f91;
+}
+
+.banner-error {
+  background: #fdecec;
+  color: #b42318;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 16px;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #d0d7e2;
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 420px;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 520px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e4e7ec;
+  text-align: left;
+  vertical-align: top;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+.row-active {
+  background: #eef4ff;
+}
+
+.center {
+  text-align: center;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+}
+
+.details dt {
+  margin: 0;
+  color: #667085;
+}
+
+.details dd {
+  margin: 0;
+}
+
+.comment-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 110px;
+  padding: 10px;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: #2563eb;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.copyable:hover:not(:disabled) {
+  background: #eef4ff;
+}
+
+.copyable:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.copyable-mono .copyable-value {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.88rem;
+  word-break: break-all;
+}
+
+.copyable-label {
+  color: #667085;
+  font-size: 0.82rem;
+  margin-right: 4px;
+}
+
+.copyable-hint {
+  color: #027a48;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.copyable-copied .copyable-value {
+  color: #027a48;
+}
+
+.panel-details {
+  overflow: auto;
+}
+
+.doc-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.doc-summary .copyable {
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e4e7ec;
+  background: #fafbfd;
+}
+
+.details-compact {
+  margin-bottom: 14px;
+}
+
+.parties-section {
+  margin-bottom: 16px;
+}
+
+.parties-header h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.parties-hint {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+}
+
+.parties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.party-card {
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fbfcfe;
+}
+
+.party-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.party-role {
+  font-weight: 600;
+  color: #1d4f91;
+}
+
+.party-name {
+  color: #344054;
+}
+
+.party-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.party-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.party-label {
+  font-size: 0.78rem;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.party-edo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.party-edo-id {
+  flex: 1;
+}
+
+.edo-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.edo-status-accepted {
+  background: #dcfae6;
+  color: #027a48;
+}
+
+.edo-status-rejected {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.edo-status-unknown {
+  background: #f2f4f7;
+  color: #667085;
+}
+
+@media (max-width: 960px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}

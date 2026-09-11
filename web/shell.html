@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Помощник ЭДО — ЭТН</title>
+    <style>{{INLINE_CSS}}</style>
+  </head>
+  <body>
+    <div id="root"><p style="padding:12px;font-family:Segoe UI,sans-serif">Загрузка React UI…</p></div>
+    <a id="bridge-link" href="#" style="display:none" aria-hidden="true"></a>
+    <script>
+      var process = { env: { NODE_ENV: "production" } };
+      window.__edoReportError = function (msg) {
+        var root = document.getElementById("root");
+        if (root) {
+          root.innerHTML =
+            '<pre style="padding:12px;font-family:Segoe UI,sans-serif;color:#c00;white-space:pre-wrap">' +
+            msg +
+            "</pre>";
+        }
+      };
+      window.onerror = function (message, source, line) {
+        window.__edoReportError("JS: " + message + "\n" + source + ":" + line);
+      };
+    </script>
+    <script>{{INLINE_JS}}</script>
+  </body>
+</html>
