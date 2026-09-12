@@ -7,10 +7,18 @@ type CopyableProps = {
   label?: string;
   mono?: boolean;
   className?: string;
+  children?: React.ReactNode;
   onCopied?: (value: string) => void;
 };
 
-export function Copyable({ value, label, mono = false, className = "", onCopied }: CopyableProps) {
+export function Copyable({
+  value,
+  label,
+  mono = false,
+  className = "",
+  children,
+  onCopied,
+}: CopyableProps) {
   const [copied, setCopied] = useState(false);
   const display = value || "—";
 
@@ -36,7 +44,7 @@ export function Copyable({ value, label, mono = false, className = "", onCopied 
       disabled={!value}
     >
       {label ? <span className="copyable-label">{label}</span> : null}
-      <span className="copyable-value">{display}</span>
+      <span className="copyable-value">{children ?? display}</span>
       {copied ? <span className="copyable-hint">скопировано</span> : null}
     </button>
   );

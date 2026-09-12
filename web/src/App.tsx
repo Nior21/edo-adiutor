@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MouseEvent } from "react";
-import { notifyReady, requestDocument, requestList, saveComment } from "./bridge";
+import { notifyReady, requestDocument, requestList } from "./bridge";
 import { Copyable } from "./Copyable";
-import type { EdoExchangeStatus, EtnDocument, EtnListItem, EtnParty, InitPayload } from "./types";
+import { DocumentModal } from "./DocumentModal";
+import { PartyCellView } from "./PartyCellView";
+import { StatusBar } from "./StatusBar";
+import { TableSkeleton } from "./TableSkeleton";
+import { formatDate } from "./format";
+import { useToast } from "./useToast";
+import type { EpdListItem, InitPayload } from "./types";
+
+const TABLE_HINT =
+  "Клик по строке — карточка документа. Клик по значению — копирование. М — наша организация, ✓/✕/? — обмен ЭДО с контрагентом.";
 
 function parseJson<T>(json: string, fallback: T): T {
   try {
@@ -12,135 +21,68 @@ function parseJson<T>(json: string, fallback: T): T {
   }
 }
 
-function formatDate(value: string): string {
-  if (!value) {
-    return "—";
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("ru-RU");
-}
-
-function formatInnKpp(inn: string, kpp: string): string {
-  if (!inn && !kpp) {
-    return "—";
-  }
-  if (inn && kpp) {
-    return `${inn} / ${kpp}`;
-  }
-  return inn || kpp;
-}
-
-function EdoStatusIcon({ status }: { status: EdoExchangeStatus }) {
-  if (status === "accepted") {
-    return (
-      <span className="edo-status edo-status-accepted" title="Обмен ЭДО: приглашение принято">
-        ✓
-      </span>
-    );
-  }
-  if (status === "not_accepted") {
-    return (
-      <span className="edo-status edo-status-rejected" title="Обмен ЭДО: приглашение не принято">
-        ✕
-      </span>
-    );
-  }
-  return <span className="edo-status edo-status-unknown" title="ID ЭДО не указан">?</span>;
-}
-
-function PartyCard({
-  party,
-  onCopied,
-}: {
-  party: EtnParty;
-  onCopied: (value: string) => void;
-}) {
-  return (
-    <article className="party-card">
-      <header className="party-card-header">
-        <span className="party-role">{party.roleLabel}</span>
-        {party.participantName ? <span className="party-name">{party.participantName}</span> : null}
-      </header>
-      <div className="party-grid">
-        <div className="party-field">
-          <span className="party-label">ИНН / КПП</span>
-          <Copyable
-            value={formatInnKpp(party.inn, party.kpp) === "—" ? "" : formatInnKpp(party.inn, party.kpp)}
-            mono
-            onCopied={onCopied}
-          />
-        </div>
-        <div className="party-field party-field-edo">
-          <span className="party-label">ID ЭДО</span>
-          <div className="party-edo-row">
-            <EdoStatusIcon status={party.edoExchangeStatus} />
-            <Copyable value={party.edoId} mono className="party-edo-id" onCopied={onCopied} />
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
 export default function App() {
-  const [version, setVersion] = useState("0.1.0");
-  const [items, setItems] = useState<EtnListItem[]>([]);
-  const [selectedRef, setSelectedRef] = useState<string>("");
-  const [document, setDocument] = useState<EtnDocument | null>(null);
+  const [version, setVersion] = useState("0.3.0");
+  const [items, setItems] = useState<EpdListItem[]>([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [modalRef, setModalRef] = useState<string>("");
+  const [modalDoc, setModalDoc] = useState<EpdListItem | null>(null);
+  const [docLoading, setDocLoading] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
-  const [status, setStatus] = useState("Ожидание данных из 1С…");
-  const [error, setError] = useState("");
+  const { toast, showToast } = useToast();
 
-  const selectedItem = useMemo(
-    () => items.find((item) => item.ref === selectedRef) ?? null,
-    [items, selectedRef],
+  const modalItem = useMemo(() => {
+    if (modalDoc?.ref === modalRef) {
+      return modalDoc;
+    }
+    return items.find((item) => item.ref === modalRef) ?? null;
+  }, [items, modalDoc, modalRef]);
+
+  const handleCopied = useCallback(
+    (value: string) => {
+      const preview = value.length > 48 ? `${value.slice(0, 48)}…` : value;
+      showToast(`Скопировано: ${preview}`);
+    },
+    [showToast],
   );
 
-  const applyDocument = useCallback((payload: EtnDocument) => {
-    setDocument(payload);
+  const mergeItem = useCallback((payload: EpdListItem) => {
+    setItems((prev) => prev.map((item) => (item.ref === payload.ref ? { ...item, ...payload } : item)));
+    setModalDoc(payload);
     setCommentDraft(payload.comment ?? "");
-    setSelectedRef(payload.ref);
-    setItems((prev) =>
-      prev.map((item) => (item.ref === payload.ref ? { ...item, comment: payload.comment } : item)),
-    );
+    setDocLoading(false);
   }, []);
 
-  const handleCopied = useCallback((value: string) => {
-    const preview = value.length > 48 ? `${value.slice(0, 48)}…` : value;
-    setStatus(`Скопировано: ${preview}`);
-    setError("");
-  }, []);
+  useEffect(() => {
+    document.body.classList.toggle("modal-open", Boolean(modalRef));
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [modalRef]);
 
   useEffect(() => {
     window.__edoBridgeRegister({
       init: (json: string) => {
-        const payload = parseJson<InitPayload>(json, { version: "0.1.0", items: [] });
+        const payload = parseJson<InitPayload>(json, { version: "0.3.0", items: [] });
         setVersion(payload.version);
         setItems(payload.items ?? []);
-        setStatus(`Загружено документов: ${payload.items?.length ?? 0}`);
-        setError("");
-        if ((payload.items?.length ?? 0) > 0 && !selectedRef) {
-          const first = payload.items[0];
-          setSelectedRef(first.ref);
-          requestDocument(first.ref);
-        }
+        setListLoading(false);
+        showToast(`Загружено документов: ${payload.items?.length ?? 0}`);
       },
       setDocument: (json: string) => {
-        const payload = parseJson<EtnDocument | null>(json, null);
+        const payload = parseJson<EpdListItem | null>(json, null);
         if (!payload) {
-          setError("Не удалось разобрать документ");
+          showToast("Не удалось разобрать документ", "error");
+          setDocLoading(false);
           return;
         }
-        applyDocument({ ...payload, parties: payload.parties ?? [] });
-        setStatus("Документ загружен");
-        setError("");
+        mergeItem(payload);
       },
       setStatus: (message: string) => {
-        setStatus(message);
-        setError("");
+        showToast(message);
       },
       setError: (message: string) => {
-        setError(message);
+        showToast(message, "error");
       },
     });
 
@@ -149,193 +91,135 @@ export default function App() {
     return () => {
       window.__edoBridgeRegister(undefined);
     };
-  }, [applyDocument, selectedRef]);
+  }, [mergeItem, showToast]);
 
-  const handleSelect = (ref: string) => {
-    setSelectedRef(ref);
-    setStatus("Загрузка документа…");
+  const openModal = (ref: string) => {
+    const row = items.find((item) => item.ref === ref);
+    setModalRef(ref);
+    setModalDoc(row ?? null);
+    setCommentDraft(row?.comment ?? "");
+    setDocLoading(true);
     requestDocument(ref);
   };
 
-  const handleRefresh = () => {
-    setStatus("Обновление списка…");
-    requestList();
+  const closeModal = () => {
+    setModalRef("");
+    setModalDoc(null);
+    setDocLoading(false);
   };
 
-  const handleSave = () => {
-    if (!selectedRef) {
-      setError("Не выбран документ");
-      return;
-    }
-    setStatus("Сохранение комментария…");
-    saveComment(selectedRef, commentDraft);
+  const handleRefresh = () => {
+    setListLoading(true);
+    closeModal();
+    showToast("Обновление списка…");
+    requestList();
   };
 
   const stopRowClick = (event: MouseEvent) => {
     event.stopPropagation();
   };
 
-  const activeDoc = document ?? selectedItem;
-  const parties = document?.parties ?? [];
+  const handleSaved = (ref: string, comment: string) => {
+    setItems((prev) => prev.map((item) => (item.ref === ref ? { ...item, comment } : item)));
+    setModalDoc((prev) => (prev?.ref === ref ? { ...prev, comment } : prev));
+    showToast("Комментарий сохранён");
+  };
 
   return (
-    <div className="layout">
-      <header className="header">
-        <div>
-          <h1>Электронные транспортные накладные</h1>
-          <p className="muted">Помощник ЭДО · React UI v{version} · только ЭТрН</p>
-        </div>
-        <button type="button" onClick={handleRefresh}>
-          Обновить список
+    <div className="layout layout-full layout-shell">
+      <div className="layout-toolbar">
+        <span className="app-meta muted">
+          Помощник ЭДО · v{version} · ЭТрН, ЭСВ, ЭЗЗ, ЭЗН, ЭПЛ, ЭДФ
+        </span>
+        <button type="button" className="button-ghost" onClick={handleRefresh} title="Обновить список">
+          ↻ Обновить
         </button>
-      </header>
+      </div>
 
-      {(status || error) && (
-        <div className={`banner ${error ? "banner-error" : "banner-info"}`}>{error || status}</div>
-      )}
-
-      <div className="content">
-        <section className="panel">
-          <h2>Список ({items.length})</h2>
-          <div className="table-wrap">
-            <table>
+      <section className="panel panel-table panel-flex">
+        <div className="table-wrap table-wrap-wide">
+          {listLoading ? (
+            <TableSkeleton />
+          ) : (
+            <table className="epd-table">
               <thead>
                 <tr>
-                  <th>Тип</th>
-                  <th>Номер</th>
-                  <th>Дата</th>
-                  <th>УИД Минтранс</th>
-                  <th>Организация</th>
-                  <th>Титул</th>
+                  <th>Документ</th>
+                  <th>Грузоотправитель</th>
+                  <th>Грузополучатель</th>
+                  <th>Перевозчик</th>
+                  <th>Шаг</th>
+                  <th>Статус</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item) => (
                   <tr
                     key={item.ref}
-                    className={item.ref === selectedRef ? "row-active" : ""}
-                    onClick={() => handleSelect(item.ref)}
+                    className={`${item.deletionMark ? "row-deleted" : ""} ${item.ref === modalRef ? "row-active" : ""}`}
+                    onClick={() => openModal(item.ref)}
                   >
                     <td onClick={stopRowClick}>
-                      <Copyable value={item.docType || "ЭТрН"} onCopied={handleCopied} />
+                      <div className="cell-stack doc-cell">
+                        <span className="doc-type-badge" title={item.docTypeName}>
+                          {item.docType}
+                        </span>
+                        <Copyable value={item.number} mono className="doc-number-btn" onCopied={handleCopied} />
+                        <span className="cell-muted">{item.date ? formatDate(item.date) : "—"}</span>
+                      </div>
                     </td>
                     <td onClick={stopRowClick}>
-                      <Copyable value={item.number} mono onCopied={handleCopied} />
+                      <PartyCellView party={item.shipper} onCopied={handleCopied} />
                     </td>
                     <td onClick={stopRowClick}>
-                      <Copyable value={item.date ? formatDate(item.date) : ""} onCopied={handleCopied} />
+                      <PartyCellView party={item.consignee} onCopied={handleCopied} />
                     </td>
                     <td onClick={stopRowClick}>
-                      <Copyable value={item.uidMintrans} mono onCopied={handleCopied} />
+                      <PartyCellView party={item.carrier} onCopied={handleCopied} />
                     </td>
-                    <td>{item.organization || "—"}</td>
-                    <td>{item.currentTitle || "—"}</td>
+                    <td>
+                      <div className="cell-stack">
+                        <span>{item.currentStep || "—"}</span>
+                        <span className={`step-flag ${item.currentStepDone ? "step-done" : "step-pending"}`}>
+                          {item.currentStepDone ? "выполнен" : "не выполнен"}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="status-chips">
+                        <span className={`chip ${item.posted ? "chip-ok" : "chip-neutral"}`}>
+                          {item.posted ? "Пров." : "Черн."}
+                        </span>
+                        {item.deletionMark ? <span className="chip chip-danger">Удал.</span> : null}
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="muted center">
-                      Нет ЭТрН. Электронные заказы (ЭЗЗ) здесь не показываются.
+                      В реестре ЭПД нет документов.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="panel panel-details">
-          <h2>Аудит документа</h2>
-          {!activeDoc && <p className="muted">Выберите документ в списке.</p>}
-          {activeDoc && (
-            <>
-              <div className="doc-summary">
-                <Copyable
-                  label="Тип"
-                  value={activeDoc.docType || "ЭТрН"}
-                  onCopied={handleCopied}
-                />
-                <Copyable
-                  label="Номер"
-                  value={activeDoc.number}
-                  mono
-                  onCopied={handleCopied}
-                />
-                <Copyable
-                  label="Дата"
-                  value={activeDoc.date ? formatDate(activeDoc.date) : ""}
-                  onCopied={handleCopied}
-                />
-                <Copyable
-                  label="УИД Минтранс"
-                  value={activeDoc.uidMintrans}
-                  mono
-                  onCopied={handleCopied}
-                />
-                <Copyable
-                  label="Номер ТН"
-                  value={activeDoc.waybillNumber}
-                  mono
-                  onCopied={handleCopied}
-                />
-                <Copyable
-                  label="Дата ТН"
-                  value={activeDoc.waybillDate ? formatDate(activeDoc.waybillDate) : ""}
-                  onCopied={handleCopied}
-                />
-              </div>
-
-              {document && (
-                <dl className="details details-compact">
-                  <dt>Организация</dt>
-                  <dd>{document.organization || "—"}</dd>
-                  <dt>Текущий титул</dt>
-                  <dd>{document.currentTitle || "—"}</dd>
-                  <dt>Роль участника</dt>
-                  <dd>{document.roleParticipant || "—"}</dd>
-                  <dt>Текущий шаг</dt>
-                  <dd>{document.currentStep || "—"}</dd>
-                  <dt>Входящий</dt>
-                  <dd>{document.isIncoming ? "Да" : "Нет"}</dd>
-                </dl>
-              )}
-
-              <div className="parties-section">
-                <div className="parties-header">
-                  <h3>Стороны сделки</h3>
-                  <p className="muted parties-hint">
-                    ✓ обмен принят · ✕ не принят · ? ID не указан. Нажмите на значение, чтобы скопировать.
-                  </p>
-                </div>
-                {parties.length === 0 ? (
-                  <p className="muted">Стороны не заполнены в титуле.</p>
-                ) : (
-                  <div className="parties-list">
-                    {parties.map((party) => (
-                      <PartyCard key={party.role} party={party} onCopied={handleCopied} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
           )}
+        </div>
+      </section>
 
-          <label className="comment-block">
-            <span>Комментарий</span>
-            <textarea
-              rows={4}
-              value={commentDraft}
-              onChange={(event) => setCommentDraft(event.target.value)}
-              placeholder="Введите комментарий к документу"
-            />
-          </label>
-          <div className="actions">
-            <button type="button" onClick={handleSave} disabled={!selectedRef}>
-              Сохранить комментарий
-            </button>
-          </div>
-        </section>
-      </div>
+      <StatusBar toast={toast} hint={TABLE_HINT} />
+
+      <DocumentModal
+        open={Boolean(modalRef)}
+        item={modalItem}
+        loading={docLoading}
+        commentDraft={commentDraft}
+        onCommentChange={setCommentDraft}
+        onClose={closeModal}
+        onCopied={handleCopied}
+        onSaved={handleSaved}
+      />
     </div>
   );
 }

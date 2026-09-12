@@ -1,45 +1,49 @@
-export type EdoExchangeStatus = "accepted" | "not_accepted" | "unknown";
+export type EdoExchangeStatus = "accepted" | "not_accepted" | "unknown" | "own";
 
-export type EtnParty = {
-  role: string;
-  roleLabel: string;
-  participantName: string;
+export type PartyCell = {
+  name: string;
   inn: string;
   kpp: string;
   edoId: string;
   edoExchangeStatus: EdoExchangeStatus;
+  isOwnOrganization?: boolean;
 };
 
-export type EtnListItem = {
+export type EpdListItem = {
   ref: string;
   docType: string;
+  docTypeName: string;
   number: string;
+  ibNumber: string;
   date: string;
-  comment: string;
-  uidMintrans: string;
   organization: string;
-  currentTitle: string;
-  waybillNumber: string;
-  waybillDate: string;
-  isIncoming: boolean;
-};
-
-export type EtnDocument = EtnListItem & {
-  roleParticipant: string;
   currentStep: string;
   currentStepDone: boolean;
-  parties: EtnParty[];
+  posted: boolean;
+  deletionMark: boolean;
+  comment: string;
+  shipper: PartyCell;
+  consignee: PartyCell;
+  carrier: PartyCell;
+  uidMintrans?: string;
+  isIncoming?: boolean;
+  roleParticipant?: string;
+  waybillNumber?: string;
+  waybillDate?: string;
+  titleDates?: Record<string, string>;
+  diagnostics?: string[];
 };
 
 export type InitPayload = {
   version: string;
-  items: EtnListItem[];
+  items: EpdListItem[];
 };
 
 export type BridgeAction =
   | { action: "ready" }
   | { action: "getList" }
   | { action: "getDocument"; ref: string }
+  | { action: "openDocument"; ref: string }
   | { action: "saveComment"; ref: string; comment: string };
 
 export {};

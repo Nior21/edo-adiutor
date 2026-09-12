@@ -79,9 +79,11 @@ export function requestDocument(ref: string): void {
 
 
 export function saveComment(ref: string, comment: string): void {
-
   call1C({ action: "saveComment", ref, comment });
+}
 
+export function openDocument(ref: string): void {
+  call1C({ action: "openDocument", ref });
 }
 
 
