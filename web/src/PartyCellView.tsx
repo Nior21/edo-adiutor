@@ -1,5 +1,8 @@
+import { openCatalogRef, openEdoSettings } from "./bridge";
 import { Copyable } from "./Copyable";
+import { ExternalLinkIcon } from "./ExternalLinkIcon";
 import { formatInn, truncateEdoId } from "./format";
+import type { FloatingMenuItem } from "./FloatingMenu";
 import type { PartyCell } from "./types";
 
 function EdoStatusIcon({ party }: { party: PartyCell }) {
@@ -21,10 +24,12 @@ function EdoStatusIcon({ party }: { party: PartyCell }) {
 
 type PartyCellViewProps = {
   party: PartyCell;
+  organizationRef: string;
   onCopied: (value: string) => void;
+  onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
 };
 
-export function PartyCellView({ party, onCopied }: PartyCellViewProps) {
+export function PartyCellView({ party, organizationRef, onCopied, onOpenMenu }: PartyCellViewProps) {
   const hasData = party.name || party.inn || party.edoId;
 
   if (!hasData) {
@@ -33,29 +38,83 @@ export function PartyCellView({ party, onCopied }: PartyCellViewProps) {
 
   const inn = formatInn(party.inn, party.kpp);
 
+  const openEntity = () => {
+    if (party.entityRef) {
+      openCatalogRef(party.entityRef);
+    }
+  };
+
+  const openEdo = () => {
+    if (party.edoId && organizationRef) {
+      openEdoSettings(party.edoId, organizationRef);
+    }
+  };
+
+  const entityLinkTitle =
+    party.entityKind === "organization" ? "Открыть карточку организации" : "Открыть карточку контрагента";
+
+  const entityMenuItems: FloatingMenuItem[] = party.entityRef
+    ? [{ id: "open-entity", label: entityLinkTitle, onSelect: openEntity }]
+    : [];
+
+  const edoMenuItems: FloatingMenuItem[] =
+    party.edoId && organizationRef && !party.isOwnOrganization
+      ? [{ id: "open-edo", label: "Настройки ЭДО", onSelect: openEdo }]
+      : [];
+
   return (
     <div className="party-stack">
-      {party.name ? (
-        <Copyable value={party.name} className="party-name-btn" onCopied={onCopied} />
-      ) : (
-        <span className="party-name-muted">Без наименования</span>
-      )}
+      <div className="party-inline-line">
+        {party.name ? (
+          <>
+            <Copyable
+              value={party.name}
+              className="party-name-btn"
+              onCopied={onCopied}
+              onOpenMenu={onOpenMenu}
+              extraMenuItems={entityMenuItems.map((item) => ({ label: item.label, onSelect: item.onSelect }))}
+            />
+            {party.entityRef ? (
+              <ExternalLinkIcon
+                onClick={openEntity}
+                title={entityLinkTitle}
+                onOpenMenu={onOpenMenu}
+                menuItems={entityMenuItems}
+              />
+            ) : null}
+          </>
+        ) : (
+          <span className="party-name-muted">Без наименования</span>
+        )}
+      </div>
       {inn ? (
-        <Copyable value={inn} className="party-inn-btn" mono onCopied={onCopied} />
+        <Copyable value={inn} className="party-inn-btn" mono onCopied={onCopied} onOpenMenu={onOpenMenu} />
       ) : (
         <span className="party-inn-muted">ИНН не указан</span>
       )}
       <div className="party-edo-line">
         <EdoStatusIcon party={party} />
         {party.edoId ? (
-          <Copyable
-            value={party.edoId}
-            className="party-edo-btn"
-            mono
-            onCopied={onCopied}
-          >
-            {truncateEdoId(party.edoId)}
-          </Copyable>
+          <>
+            <Copyable
+              value={party.edoId}
+              className="party-edo-btn"
+              mono
+              onCopied={onCopied}
+              onOpenMenu={onOpenMenu}
+              extraMenuItems={edoMenuItems.map((item) => ({ label: item.label, onSelect: item.onSelect }))}
+            >
+              {truncateEdoId(party.edoId)}
+            </Copyable>
+            {organizationRef && !party.isOwnOrganization ? (
+              <ExternalLinkIcon
+                onClick={openEdo}
+                title="Настройки ЭДО"
+                onOpenMenu={onOpenMenu}
+                menuItems={edoMenuItems}
+              />
+            ) : null}
+          </>
         ) : (
           <span className="party-edo-muted">ID ЭДО не указан</span>
         )}

@@ -1,35 +1,56 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { MouseEvent } from "react";
 import { notifyReady, requestDocument, requestList } from "./bridge";
-import { Copyable } from "./Copyable";
+import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
-import { PartyCellView } from "./PartyCellView";
+import { EpdTableRow } from "./EpdTableRow";
+import { useFloatingMenu } from "./FloatingMenu";
+import { LoadingAnimationLab } from "./LoadingAnimationLab";
+import { LoadingPlaceholderRow } from "./LoadingPlaceholderRow";
 import { StatusBar } from "./StatusBar";
-import { TableSkeleton } from "./TableSkeleton";
-import { formatDate } from "./format";
+import { TableSubhead } from "./TableSubhead";
+import { daysWithItems, filterItems, loadStoredDays, loadStoredQuery } from "./epdSearch";
+import { parseDocumentPayload, parseInitPayload } from "./parsePayload";
 import { useToast } from "./useToast";
-import type { EpdListItem, InitPayload } from "./types";
+import type { EpdListItem } from "./types";
 
 const TABLE_HINT =
-  "Клик по строке — карточка документа. Клик по значению — копирование. М — наша организация, ✓/✕/? — обмен ЭДО с контрагентом.";
+  "Клик по строке — карточка. Клик по тексту — копирование. ПКМ — меню. ⋮ — действия строки. М — наша организация.";
 
-function parseJson<T>(json: string, fallback: T): T {
-  try {
-    return JSON.parse(json) as T;
-  } catch {
-    return fallback;
-  }
-}
+const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
+
+const ANIM_TEST_MS = 8000;
 
 export default function App() {
-  const [version, setVersion] = useState("0.3.0");
+  const [version, setVersion] = useState("0.3.9");
   const [items, setItems] = useState<EpdListItem[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [refreshActive, setRefreshActive] = useState(false);
+  const [query, setQuery] = useState(loadStoredQuery);
+  const [selectedDays, setSelectedDays] = useState<Set<string>>(() => loadStoredDays());
   const [modalRef, setModalRef] = useState<string>("");
   const [modalDoc, setModalDoc] = useState<EpdListItem | null>(null);
   const [docLoading, setDocLoading] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [animTestUntil, setAnimTestUntil] = useState(0);
   const { toast, showToast } = useToast();
+  const { openAt: openFloatingMenu, portal: floatingMenuPortal } = useFloatingMenu();
+
+  const animTestActive = Date.now() < animTestUntil;
+
+  const daysWithData = useMemo(() => daysWithItems(items), [items]);
+
+  const visibleItems = useMemo(
+    () => (listLoading ? [] : filterItems(items, query, selectedDays)),
+    [items, listLoading, query, selectedDays],
+  );
+
+  const metaText = useMemo(() => {
+    if (listLoading) {
+      return "…";
+    }
+    return `${visibleItems.length} из ${items.length}`;
+  }, [items.length, listLoading, visibleItems.length]);
 
   const modalItem = useMemo(() => {
     if (modalDoc?.ref === modalRef) {
@@ -54,29 +75,41 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.toggle("modal-open", Boolean(modalRef));
+    document.body.classList.toggle("modal-open", Boolean(modalRef || aboutOpen));
     return () => {
       document.body.classList.remove("modal-open");
     };
-  }, [modalRef]);
+  }, [aboutOpen, modalRef]);
+
+  useEffect(() => {
+    if (!animTestActive) {
+      return;
+    }
+    const delay = animTestUntil - Date.now();
+    const id = window.setTimeout(() => setAnimTestUntil(0), Math.max(delay, 0));
+    return () => window.clearTimeout(id);
+  }, [animTestActive, animTestUntil]);
 
   useEffect(() => {
     window.__edoBridgeRegister({
-      init: (json: string) => {
-        const payload = parseJson<InitPayload>(json, { version: "0.3.0", items: [] });
+      init: (json: unknown) => {
+        const payload = parseInitPayload(json);
         setVersion(payload.version);
         setItems(payload.items ?? []);
         setListLoading(false);
+        setRefreshActive(false);
         showToast(`Загружено документов: ${payload.items?.length ?? 0}`);
       },
-      setDocument: (json: string) => {
-        const payload = parseJson<EpdListItem | null>(json, null);
-        if (!payload) {
-          showToast("Не удалось разобрать документ", "error");
+      setDocument: (json: unknown) => {
+        const { item, error } = parseDocumentPayload(json);
+        if (!item) {
           setDocLoading(false);
+          if (error) {
+            showToast(error, "error");
+          }
           return;
         }
-        mergeItem(payload);
+        mergeItem(item);
       },
       setStatus: (message: string) => {
         showToast(message);
@@ -94,12 +127,15 @@ export default function App() {
   }, [mergeItem, showToast]);
 
   const openModal = (ref: string) => {
-    const row = items.find((item) => item.ref === ref);
+    const row = visibleItems.find((item) => item.ref === ref) ?? items.find((item) => item.ref === ref);
+    if (!row) {
+      return;
+    }
     setModalRef(ref);
-    setModalDoc(row ?? null);
-    setCommentDraft(row?.comment ?? "");
+    setModalDoc(row);
+    setCommentDraft(row.comment ?? "");
     setDocLoading(true);
-    requestDocument(ref);
+    requestDocument(ref, row.docType);
   };
 
   const closeModal = () => {
@@ -109,117 +145,94 @@ export default function App() {
   };
 
   const handleRefresh = () => {
+    if (refreshActive || listLoading) {
+      return;
+    }
+    setRefreshActive(true);
     setListLoading(true);
     closeModal();
     showToast("Обновление списка…");
     requestList();
   };
 
-  const stopRowClick = (event: MouseEvent) => {
-    event.stopPropagation();
-  };
-
-  const handleSaved = (ref: string, comment: string) => {
-    setItems((prev) => prev.map((item) => (item.ref === ref ? { ...item, comment } : item)));
-    setModalDoc((prev) => (prev?.ref === ref ? { ...prev, comment } : prev));
-    showToast("Комментарий сохранён");
+  const runAnimTest = () => {
+    setAnimTestUntil(Date.now() + ANIM_TEST_MS);
+    showToast(`Тест анимаций: ${ANIM_TEST_MS / 1000} сек.`);
   };
 
   return (
     <div className="layout layout-full layout-shell">
-      <div className="layout-toolbar">
-        <span className="app-meta muted">
-          Помощник ЭДО · v{version} · ЭТрН, ЭСВ, ЭЗЗ, ЭЗН, ЭПЛ, ЭДФ
-        </span>
-        <button type="button" className="button-ghost" onClick={handleRefresh} title="Обновить список">
-          ↻ Обновить
-        </button>
+      <div className="main-card">
+        <TableSubhead
+          metaText={metaText}
+          listLoading={listLoading}
+          refreshActive={refreshActive}
+          selectedDays={selectedDays}
+          daysWithData={daysWithData}
+          query={query}
+          onQueryChange={setQuery}
+          onDaysChange={setSelectedDays}
+          onRefresh={handleRefresh}
+          onAnimTest={runAnimTest}
+          animTestActive={animTestActive}
+        />
+
+        <div className="table-scroll">
+          <table className="epd-table">
+            <thead>
+              <tr>
+                {TABLE_COLUMNS.map((title, index) => (
+                  <th key={index} className={index === 4 ? "col-row-menu" : undefined}>
+                    {title}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {animTestActive ? <LoadingAnimationLab /> : null}
+              {listLoading ? (
+                <LoadingPlaceholderRow />
+              ) : (
+                <>
+                  {visibleItems.map((item) => (
+                    <EpdTableRow
+                      key={item.ref}
+                      item={item}
+                      active={item.ref === modalRef}
+                      onOpen={openModal}
+                      onCopied={handleCopied}
+                      onOpenMenu={openFloatingMenu}
+                    />
+                  ))}
+                  {!listLoading && visibleItems.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="muted center">
+                        {items.length === 0 ? "В реестре ЭПД нет документов." : "Нет документов за выбранные условия."}
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <section className="panel panel-table panel-flex">
-        <div className="table-wrap table-wrap-wide">
-          {listLoading ? (
-            <TableSkeleton />
-          ) : (
-            <table className="epd-table">
-              <thead>
-                <tr>
-                  <th>Документ</th>
-                  <th>Грузоотправитель</th>
-                  <th>Грузополучатель</th>
-                  <th>Перевозчик</th>
-                  <th>Шаг</th>
-                  <th>Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr
-                    key={item.ref}
-                    className={`${item.deletionMark ? "row-deleted" : ""} ${item.ref === modalRef ? "row-active" : ""}`}
-                    onClick={() => openModal(item.ref)}
-                  >
-                    <td onClick={stopRowClick}>
-                      <div className="cell-stack doc-cell">
-                        <span className="doc-type-badge" title={item.docTypeName}>
-                          {item.docType}
-                        </span>
-                        <Copyable value={item.number} mono className="doc-number-btn" onCopied={handleCopied} />
-                        <span className="cell-muted">{item.date ? formatDate(item.date) : "—"}</span>
-                      </div>
-                    </td>
-                    <td onClick={stopRowClick}>
-                      <PartyCellView party={item.shipper} onCopied={handleCopied} />
-                    </td>
-                    <td onClick={stopRowClick}>
-                      <PartyCellView party={item.consignee} onCopied={handleCopied} />
-                    </td>
-                    <td onClick={stopRowClick}>
-                      <PartyCellView party={item.carrier} onCopied={handleCopied} />
-                    </td>
-                    <td>
-                      <div className="cell-stack">
-                        <span>{item.currentStep || "—"}</span>
-                        <span className={`step-flag ${item.currentStepDone ? "step-done" : "step-pending"}`}>
-                          {item.currentStepDone ? "выполнен" : "не выполнен"}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="status-chips">
-                        <span className={`chip ${item.posted ? "chip-ok" : "chip-neutral"}`}>
-                          {item.posted ? "Пров." : "Черн."}
-                        </span>
-                        {item.deletionMark ? <span className="chip chip-danger">Удал.</span> : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {items.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="muted center">
-                      В реестре ЭПД нет документов.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </section>
-
-      <StatusBar toast={toast} hint={TABLE_HINT} />
+      <StatusBar toast={toast} hint={TABLE_HINT} version={version} onAboutOpen={() => setAboutOpen(true)} />
 
       <DocumentModal
-        open={Boolean(modalRef)}
+        open={Boolean(modalRef && modalItem)}
         item={modalItem}
         loading={docLoading}
         commentDraft={commentDraft}
         onCommentChange={setCommentDraft}
         onClose={closeModal}
         onCopied={handleCopied}
-        onSaved={handleSaved}
       />
+
+      <AboutModal open={aboutOpen} version={version} onClose={() => setAboutOpen(false)} />
+
+      {floatingMenuPortal}
     </div>
   );
 }

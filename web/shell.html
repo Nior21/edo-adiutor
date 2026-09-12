@@ -7,7 +7,91 @@
     <style>{{INLINE_CSS}}</style>
   </head>
   <body>
-    <div id="root"><p style="padding:12px;font-family:Segoe UI,sans-serif">Загрузка React UI…</p></div>
+    <div id="root">
+      <div class="layout layout-full layout-shell shell-static">
+        <div class="main-card">
+          <div class="table-subhead shell-subhead">
+            <button type="button" class="date-filter-btn" disabled aria-disabled="true">
+              <svg class="date-filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="date-filter-label">все даты</span>
+            </button>
+            <input class="subhead-search" disabled placeholder="Поиск: номер, контрагент, ИНН, шаг…" aria-disabled="true" />
+            <span class="subhead-meta">…</span>
+            <div class="subhead-actions">
+              <button type="button" class="button-ghost button-anim-test" disabled aria-disabled="true">Тест аним. 8с</button>
+              <button type="button" class="button-ghost button-refresh is-busy" aria-busy="true">
+                <svg class="ico-refresh" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 12a9 9 0 1 1-2.6-6.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M21 3v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Обновить
+              </button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="epd-table">
+              <thead>
+                <tr>
+                  <th>Документ</th>
+                  <th>Грузоотправитель</th>
+                  <th>Перевозчик</th>
+                  <th>Грузополучатель</th>
+                  <th class="col-row-menu"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="loading-placeholder-row" aria-hidden="true">
+                  <td>
+                    <div class="doc-cell loading-shimmer">
+                      <div class="doc-line doc-line-head">
+                        <span class="doc-type-badge">ЭТрН</span>
+                        <span class="doc-num-wrap">№ <span class="loading-text">0000000000</span></span>
+                      </div>
+                      <div class="doc-line doc-line-meta">
+                        <span class="cell-muted loading-text">01.01.2025, 12:00</span>
+                      </div>
+                      <div class="doc-line doc-line-step">
+                        <span class="doc-step-name step-pending loading-text">Оформление</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="party-stack loading-shimmer">
+                      <span class="loading-text party-placeholder-name">ООО «Пример»</span>
+                      <span class="loading-text party-placeholder-inn">7700000000</span>
+                      <span class="loading-text party-placeholder-edo">2BM-0000000000</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="party-stack loading-shimmer">
+                      <span class="loading-text party-placeholder-name">ООО «Перевозчик»</span>
+                      <span class="loading-text party-placeholder-inn">7700000001</span>
+                      <span class="loading-text party-placeholder-edo">2BM-0000000001</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="party-stack loading-shimmer">
+                      <span class="loading-text party-placeholder-name">ООО «Получатель»</span>
+                      <span class="loading-text party-placeholder-inn">7700000002</span>
+                      <span class="loading-text party-placeholder-edo">2BM-0000000002</span>
+                    </div>
+                  </td>
+                  <td class="col-row-menu">
+                    <span class="row-menu-btn row-menu-btn-placeholder loading-text">⋮</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="status-bar status-bar-hint shell-status">
+          <span class="status-bar-message status-bar-hint-text">Клик по строке — карточка. Клик по тексту — копирование.</span>
+        </div>
+      </div>
+    </div>
     <a id="bridge-link" href="#" style="display:none" aria-hidden="true"></a>
     <script>
       var process = { env: { NODE_ENV: "production" } };

@@ -1,14 +1,14 @@
 type EdoBridgeCore = {
-  init: (json: string) => void;
-  setDocument: (json: string) => void;
+  init: (json: unknown) => void;
+  setDocument: (json: unknown) => void;
   setStatus: (message: string) => void;
   setError: (message: string) => void;
 };
 
 declare global {
   interface Window {
-    edoInit: (json: string) => void;
-    edoSetDocument: (json: string) => void;
+    edoInit: (json: unknown) => void;
+    edoSetDocument: (json: unknown) => void;
     edoSetStatus: (text: string) => void;
     edoSetError: (text: string) => void;
     __edoBridgeRegister: (core: EdoBridgeCore | undefined) => void;
@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-const queue: Array<{ method: keyof EdoBridgeCore; arg: string }> = [];
+const queue: Array<{ method: keyof EdoBridgeCore; arg: unknown }> = [];
 
 function flush(): void {
   if (!window.__edoBridgeCore) {
@@ -30,7 +30,7 @@ function flush(): void {
   }
 }
 
-function enqueue(method: keyof EdoBridgeCore, arg: string): void {
+function enqueue(method: keyof EdoBridgeCore, arg: unknown): void {
   queue.push({ method, arg });
   flush();
 }

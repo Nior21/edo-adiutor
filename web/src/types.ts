@@ -1,5 +1,7 @@
 export type EdoExchangeStatus = "accepted" | "not_accepted" | "unknown" | "own";
 
+export type PartyEntityKind = "organization" | "contragent" | "";
+
 export type PartyCell = {
   name: string;
   inn: string;
@@ -7,6 +9,8 @@ export type PartyCell = {
   edoId: string;
   edoExchangeStatus: EdoExchangeStatus;
   isOwnOrganization?: boolean;
+  entityRef?: string;
+  entityKind?: PartyEntityKind;
 };
 
 export type EpdListItem = {
@@ -17,6 +21,7 @@ export type EpdListItem = {
   ibNumber: string;
   date: string;
   organization: string;
+  organizationRef?: string;
   currentStep: string;
   currentStepDone: boolean;
   posted: boolean;
@@ -30,7 +35,7 @@ export type EpdListItem = {
   roleParticipant?: string;
   waybillNumber?: string;
   waybillDate?: string;
-  titleDates?: Record<string, string>;
+  titleDates?: Array<{ key: string; value: string }>;
   diagnostics?: string[];
 };
 
@@ -42,8 +47,10 @@ export type InitPayload = {
 export type BridgeAction =
   | { action: "ready" }
   | { action: "getList" }
-  | { action: "getDocument"; ref: string }
-  | { action: "openDocument"; ref: string }
-  | { action: "saveComment"; ref: string; comment: string };
+  | { action: "getDocument"; ref: string; docType: string }
+  | { action: "openDocument"; ref: string; docType: string }
+  | { action: "openCatalog"; ref: string }
+  | { action: "openEdoSettings"; edoId: string; orgRef: string }
+  | { action: "saveComment"; ref: string; docType: string; comment: string };
 
 export {};
