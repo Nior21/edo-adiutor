@@ -1,4 +1,11 @@
-import type { EpdListItem, InitPayload } from "./types";
+import type {
+  EdoDiagnosticsPayload,
+  EnrichRowsPayload,
+  EpdListItem,
+  InitPayload,
+  ListMetaPayload,
+  ListPagePayload,
+} from "./types";
 
 export function parseJsonValue<T>(value: unknown, fallback: T): T {
   if (value === null || value === undefined) {
@@ -26,7 +33,7 @@ export function parseJsonValue<T>(value: unknown, fallback: T): T {
 }
 
 export function parseInitPayload(value: unknown): InitPayload {
-  const fallback: InitPayload = { version: "0.3.1", items: [] };
+  const fallback: InitPayload = { version: "0.4.0", items: [] };
   const payload = parseJsonValue<InitPayload | null>(value, null);
   if (!payload || typeof payload !== "object") {
     return fallback;
@@ -34,6 +41,79 @@ export function parseInitPayload(value: unknown): InitPayload {
   return {
     version: payload.version ?? fallback.version,
     items: Array.isArray(payload.items) ? payload.items : [],
+  };
+}
+
+export function parseListMetaPayload(value: unknown): { meta: ListMetaPayload | null; error: string } {
+  const payload = parseJsonValue<{ error?: string; version?: string; total?: number } | null>(value, null);
+  if (!payload || typeof payload !== "object") {
+    return { meta: null, error: "Пустой ответ метаданных" };
+  }
+  if (payload.error) {
+    return { meta: null, error: payload.error };
+  }
+  return {
+    meta: {
+      version: payload.version ?? "0.4.0",
+      total: typeof payload.total === "number" ? payload.total : 0,
+    },
+    error: "",
+  };
+}
+
+export function parseListPagePayload(value: unknown): { page: ListPagePayload | null; error: string } {
+  const payload = parseJsonValue<{ error?: string } & ListPagePayload | null>(value, null);
+  if (!payload || typeof payload !== "object") {
+    return { page: null, error: "Пустой ответ страницы" };
+  }
+  if (payload.error) {
+    return { page: null, error: payload.error };
+  }
+  return {
+    page: {
+      offset: payload.offset ?? 0,
+      limit: payload.limit ?? 0,
+      total: payload.total ?? 0,
+      items: Array.isArray(payload.items) ? payload.items : [],
+    },
+    error: "",
+  };
+}
+
+export function parseEnrichRowsPayload(value: unknown): { payload: EnrichRowsPayload | null; error: string } {
+  const parsed = parseJsonValue<{ error?: string; updates?: EnrichRowsPayload["updates"] } | null>(value, null);
+  if (!parsed || typeof parsed !== "object") {
+    return { payload: null, error: "Пустой ответ обогащения" };
+  }
+  if (parsed.error) {
+    return { payload: null, error: parsed.error };
+  }
+  return {
+    payload: {
+      updates: Array.isArray(parsed.updates) ? parsed.updates : [],
+    },
+    error: "",
+  };
+}
+
+export function parseEdoDiagnosticsPayload(value: unknown): { data: EdoDiagnosticsPayload | null; error: string } {
+  const payload = parseJsonValue<{ error?: string } & EdoDiagnosticsPayload | null>(value, null);
+  if (!payload || typeof payload !== "object") {
+    return { data: null, error: "Пустой ответ диагностики ЭДО" };
+  }
+  if (payload.error) {
+    return { data: null, error: payload.error };
+  }
+  return {
+    data: {
+      partyName: payload.partyName ?? "",
+      inn: payload.inn ?? "",
+      kpp: payload.kpp ?? "",
+      orgEdoId: payload.orgEdoId ?? "",
+      currentEdoId: payload.currentEdoId ?? "",
+      items: Array.isArray(payload.items) ? payload.items : [],
+    },
+    error: "",
   };
 }
 

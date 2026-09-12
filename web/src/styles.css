@@ -71,7 +71,7 @@ body.modal-open {
 
 .subhead-search {
   flex: 1 1 auto;
-  min-width: 140px;
+  min-width: 72px;
   min-height: 34px;
   border: 1px solid #cfd8e3;
   border-radius: 8px;
@@ -108,19 +108,22 @@ body.modal-open {
 .button-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .button-refresh.is-busy {
-  pointer-events: none;
-  opacity: 0.88;
+  color: #2563eb;
+  border-color: #93b4ef;
+  background: #eef4ff;
 }
 
 .button-refresh.is-busy .ico-refresh {
-  -webkit-animation: spin-refresh 0.75s linear infinite;
-  animation: spin-refresh 0.75s linear infinite;
-  -webkit-transform-origin: center center;
-  transform-origin: center center;
+  animation: spin-refresh 0.85s linear infinite;
+  color: #2563eb;
+}
+
+.ico-refresh {
+  flex-shrink: 0;
 }
 
 .button-anim-test.is-active {
@@ -391,6 +394,11 @@ body.modal-open {
   animation: shimmer-lab 1.1s ease-in-out infinite;
 }
 
+.epd-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
 .epd-table thead {
   position: sticky;
   top: 0;
@@ -407,19 +415,28 @@ body.modal-open {
   box-shadow: inset 0 -1px 0 #e4e7ec;
 }
 
-.epd-table td {
-  min-width: 120px;
+.epd-table th:nth-child(1),
+.epd-table td:nth-child(1) {
+  width: 24%;
 }
 
+.epd-table th:nth-child(2),
 .epd-table td:nth-child(2),
+.epd-table th:nth-child(3),
 .epd-table td:nth-child(3),
+.epd-table th:nth-child(4),
 .epd-table td:nth-child(4) {
-  min-width: 150px;
-  max-width: 195px;
+  width: 22%;
+}
+
+.epd-table td {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .doc-cell {
-  min-width: 120px;
+  min-width: 0;
 }
 
 .doc-line {
@@ -504,6 +521,11 @@ body.modal-open {
 .link-icon-btn:hover {
   color: #2563eb;
   background: #eef4ff;
+}
+
+.edit-icon-btn:hover {
+  color: #b54708;
+  background: #fff6ed;
 }
 
 .row-menu-btn {
@@ -869,6 +891,39 @@ body.modal-open {
   gap: 10px;
 }
 
+.status-bar-loading {
+  background: #f8fafc;
+  border-top-color: #c7d7fe;
+}
+
+.status-bar-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-bar-load-text {
+  color: #1d4f91;
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+
+.status-load-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #e4e7ec;
+  overflow: hidden;
+}
+
+.status-load-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.15s ease-out;
+}
+
 .status-bar-tools {
   display: flex;
   align-items: center;
@@ -1003,8 +1058,11 @@ body.modal-open {
 }
 
 .loading-text {
-  -webkit-animation: loading-text-pulse 1.2s ease-in-out infinite;
-  animation: loading-text-pulse 1.2s ease-in-out infinite;
+  display: inline;
+}
+
+.loading-text-bright {
+  opacity: 1 !important;
 }
 
 .party-placeholder-name {
@@ -1198,6 +1256,243 @@ body.modal-open {
   }
 }
 
+.edo-diag-card {
+  max-width: min(920px, 96vw);
+  max-height: min(88vh, 720px);
+  display: flex;
+  flex-direction: column;
+}
+
+.edo-diag-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+}
+
+.edo-diag-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b42318;
+  font-size: 0.9rem;
+}
+
+.edo-diag-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-top: 8px;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+}
+
+.edo-diag-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.edo-diag-table th,
+.edo-diag-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eef1f5;
+  vertical-align: top;
+  text-align: left;
+}
+
+.edo-diag-table th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.edo-diag-table tr.is-current {
+  background: #fffbeb;
+}
+
+.edo-diag-table tr.is-in-settings {
+  background: #f0fdf4;
+}
+
+.edo-diag-id-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edo-diag-id {
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.edo-diag-title {
+  font-size: 0.78rem;
+}
+
+.edo-diag-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.edo-diag-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.edo-diag-badge-current {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.edo-diag-badge-settings {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.edo-diag-badge-archive {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.edo-diag-badge-other-org {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.edo-diag-status-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edo-diag-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.edo-diag-status-accepted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.edo-diag-status-rejected,
+.edo-diag-status-error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.edo-diag-status-awaiting_consent,
+.edo-diag-status-requires_consent,
+.edo-diag-status-requires_send,
+.edo-diag-status-roaming_setup {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.edo-diag-status-in_settings {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.edo-diag-status-no_invitation,
+.edo-diag-status-unknown,
+.edo-diag-status-not_required {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.edo-diag-date {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.edo-diag-actions {
+  white-space: nowrap;
+}
+
+.edo-diag-link-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.95rem;
+  color: #475467;
+  line-height: 1;
+}
+
+.edo-diag-link-btn:hover {
+  color: #175cd3;
+}
+
+.edo-diag-invitations {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edo-diag-invitation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.76rem;
+}
+
+.edo-diag-invitation.is-archived {
+  opacity: 0.75;
+}
+
+.edo-diag-invitation-label {
+  flex: 0 1 auto;
+}
+
+.edo-diag-invitation-date {
+  flex: 0 0 auto;
+}
+
+.edo-diag-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e7ec;
+}
+
+.edo-diag-primary-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #175cd3;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.edo-diag-primary-link:hover {
+  color: #1040a0;
+}
+
+.edo-diag-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .about-card {
   max-width: 520px;
 }
@@ -1360,6 +1655,11 @@ table {
 .epd-table {
   border-collapse: separate;
   border-spacing: 0;
+}
+
+.epd-table th,
+.epd-table td {
+  padding: 6px 6px;
 }
 
 th,
@@ -1621,6 +1921,32 @@ button:disabled {
   color: #175cd3;
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.edo-status-idle {
+  background: #f9fafb;
+  color: #cbd5e1;
+  font-weight: 400;
+}
+
+.edo-status-pending {
+  background: #f9fafb;
+  color: #98a2b3;
+  animation: edo-pending-pulse 1.2s ease-in-out infinite;
+}
+
+.party-edo-loading {
+  animation: edo-pending-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes edo-pending-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 960px) {

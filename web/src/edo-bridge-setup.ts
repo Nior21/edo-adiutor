@@ -1,6 +1,10 @@
 type EdoBridgeCore = {
   init: (json: unknown) => void;
   setDocument: (json: unknown) => void;
+  setListMeta: (json: unknown) => void;
+  setListPage: (json: unknown) => void;
+  setEnrichRows: (json: unknown) => void;
+  setEdoDiagnostics: (json: unknown) => void;
   setStatus: (message: string) => void;
   setError: (message: string) => void;
 };
@@ -9,6 +13,10 @@ declare global {
   interface Window {
     edoInit: (json: unknown) => void;
     edoSetDocument: (json: unknown) => void;
+    edoSetListMeta: (json: unknown) => void;
+    edoSetListPage: (json: unknown) => void;
+    edoSetEnrichRows: (json: unknown) => void;
+    edoSetEdoDiagnostics: (json: unknown) => void;
     edoSetStatus: (text: string) => void;
     edoSetError: (text: string) => void;
     __edoBridgeRegister: (core: EdoBridgeCore | undefined) => void;
@@ -42,6 +50,10 @@ window.__edoBridgeRegister = (core) => {
 
 window.edoInit = (json) => enqueue("init", json);
 window.edoSetDocument = (json) => enqueue("setDocument", json);
+window.edoSetListMeta = (json) => enqueue("setListMeta", json);
+window.edoSetListPage = (json) => enqueue("setListPage", json);
+window.edoSetEnrichRows = (json) => enqueue("setEnrichRows", json);
+window.edoSetEdoDiagnostics = (json) => enqueue("setEdoDiagnostics", json);
 window.edoSetStatus = (text) => enqueue("setStatus", text);
 window.edoSetError = (text) => enqueue("setError", text);
 

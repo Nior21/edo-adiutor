@@ -23,10 +23,7 @@
             <div class="subhead-actions">
               <button type="button" class="button-ghost button-anim-test" disabled aria-disabled="true">Тест аним. 8с</button>
               <button type="button" class="button-ghost button-refresh is-busy" aria-busy="true">
-                <svg class="ico-refresh" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M21 12a9 9 0 1 1-2.6-6.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                  <path d="M21 3v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <span class="ico-refresh ico-refresh-js shell-refresh-spin">◴</span>
                 Обновить
               </button>
             </div>
@@ -48,39 +45,39 @@
                     <div class="doc-cell loading-shimmer">
                       <div class="doc-line doc-line-head">
                         <span class="doc-type-badge">ЭТрН</span>
-                        <span class="doc-num-wrap">№ <span class="loading-text">0000000000</span></span>
+                        <span class="doc-num-wrap">№ <span class="loading-text anim-lab-css-keyframes shell-loading-pulse">0000000000</span></span>
                       </div>
                       <div class="doc-line doc-line-meta">
-                        <span class="cell-muted loading-text">01.01.2025, 12:00</span>
+                        <span class="cell-muted loading-text anim-lab-css-keyframes shell-loading-pulse">01.01.2025, 12:00</span>
                       </div>
                       <div class="doc-line doc-line-step">
-                        <span class="doc-step-name step-pending loading-text">Оформление</span>
+                        <span class="doc-step-name step-pending loading-text anim-lab-css-keyframes shell-loading-pulse">Оформление</span>
                       </div>
                     </div>
                   </td>
                   <td>
                     <div class="party-stack loading-shimmer">
-                      <span class="loading-text party-placeholder-name">ООО «Пример»</span>
-                      <span class="loading-text party-placeholder-inn">7700000000</span>
-                      <span class="loading-text party-placeholder-edo">2BM-0000000000</span>
+                      <span class="loading-text party-placeholder-name anim-lab-css-keyframes shell-loading-pulse">ООО «Пример»</span>
+                      <span class="loading-text party-placeholder-inn anim-lab-css-keyframes shell-loading-pulse">7700000000</span>
+                      <span class="loading-text party-placeholder-edo anim-lab-css-keyframes shell-loading-pulse">2BM-0000000000</span>
                     </div>
                   </td>
                   <td>
                     <div class="party-stack loading-shimmer">
-                      <span class="loading-text party-placeholder-name">ООО «Перевозчик»</span>
-                      <span class="loading-text party-placeholder-inn">7700000001</span>
-                      <span class="loading-text party-placeholder-edo">2BM-0000000001</span>
+                      <span class="loading-text party-placeholder-name anim-lab-css-keyframes shell-loading-pulse">ООО «Перевозчик»</span>
+                      <span class="loading-text party-placeholder-inn anim-lab-css-keyframes shell-loading-pulse">7700000001</span>
+                      <span class="loading-text party-placeholder-edo anim-lab-css-keyframes shell-loading-pulse">2BM-0000000001</span>
                     </div>
                   </td>
                   <td>
                     <div class="party-stack loading-shimmer">
-                      <span class="loading-text party-placeholder-name">ООО «Получатель»</span>
-                      <span class="loading-text party-placeholder-inn">7700000002</span>
-                      <span class="loading-text party-placeholder-edo">2BM-0000000002</span>
+                      <span class="loading-text party-placeholder-name anim-lab-css-keyframes shell-loading-pulse">ООО «Получатель»</span>
+                      <span class="loading-text party-placeholder-inn anim-lab-css-keyframes shell-loading-pulse">7700000002</span>
+                      <span class="loading-text party-placeholder-edo anim-lab-css-keyframes shell-loading-pulse">2BM-0000000002</span>
                     </div>
                   </td>
                   <td class="col-row-menu">
-                    <span class="row-menu-btn row-menu-btn-placeholder loading-text">⋮</span>
+                    <span class="row-menu-btn row-menu-btn-placeholder loading-text anim-lab-css-keyframes shell-loading-pulse">⋮</span>
                   </td>
                 </tr>
               </tbody>
@@ -107,6 +104,23 @@
       window.onerror = function (message, source, line) {
         window.__edoReportError("JS: " + message + "\n" + source + ":" + line);
       };
+      (function () {
+        var spinFrames = ["◴", "◷", "◶", "◵"];
+        var spinEl = document.querySelector(".shell-refresh-spin");
+        var pulseEls = document.querySelectorAll(".shell-loading-pulse");
+        var spinI = 0;
+        var pulseOn = false;
+        window.setInterval(function () {
+          if (spinEl) {
+            spinEl.textContent = spinFrames[spinI % spinFrames.length];
+            spinI += 1;
+          }
+          for (var i = 0; i < pulseEls.length; i += 1) {
+            pulseEls[i].style.opacity = pulseOn ? "0.92" : "0.28";
+          }
+          pulseOn = !pulseOn;
+        }, 180);
+      })();
     </script>
     <script>{{INLINE_JS}}</script>
   </body>

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+
 import { DateFilter } from "./DateFilter";
+
 import { saveStoredQuery } from "./epdSearch";
 
 type TableSubheadProps = {
@@ -30,6 +32,7 @@ export function TableSubhead({
   animTestActive,
 }: TableSubheadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const showRefreshBusy = refreshActive || listLoading;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -83,16 +86,17 @@ export function TableSubhead({
         </button>
         <button
           type="button"
-          className={`button-ghost button-refresh${refreshActive ? " is-busy" : ""}`}
+          className={`button-ghost button-refresh${showRefreshBusy ? " is-busy" : ""}`}
           onClick={onRefresh}
-          aria-busy={refreshActive}
+          disabled={showRefreshBusy}
+          aria-busy={showRefreshBusy}
           title="Обновить список"
         >
           <svg className="ico-refresh" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M21 12a9 9 0 1 1-2.6-6.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             <path d="M21 3v6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Обновить
+          <span>Обновить</span>
         </button>
       </div>
     </div>

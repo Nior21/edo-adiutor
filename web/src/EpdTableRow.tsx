@@ -8,12 +8,13 @@ import type { EpdListItem } from "./types";
 type EpdTableRowProps = {
   item: EpdListItem;
   active: boolean;
+  enrichingEdo?: boolean;
   onOpen: (ref: string) => void;
   onCopied: (value: string) => void;
   onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
 };
 
-export function EpdTableRow({ item, active, onOpen, onCopied, onOpenMenu }: EpdTableRowProps) {
+export function EpdTableRow({ item, active, enrichingEdo = false, onOpen, onCopied, onOpenMenu }: EpdTableRowProps) {
   const menuRef = useRef<RowContextMenuHandle>(null);
 
   const handleRowContextMenu = (event: MouseEvent<HTMLTableRowElement>) => {
@@ -39,6 +40,7 @@ export function EpdTableRow({ item, active, onOpen, onCopied, onOpenMenu }: EpdT
         <PartyCellView
           party={item.shipper}
           organizationRef={item.organizationRef ?? ""}
+          enrichingEdo={enrichingEdo}
           onCopied={onCopied}
           onOpenMenu={onOpenMenu}
         />
@@ -47,6 +49,7 @@ export function EpdTableRow({ item, active, onOpen, onCopied, onOpenMenu }: EpdT
         <PartyCellView
           party={item.carrier}
           organizationRef={item.organizationRef ?? ""}
+          enrichingEdo={enrichingEdo}
           onCopied={onCopied}
           onOpenMenu={onOpenMenu}
         />
@@ -55,6 +58,7 @@ export function EpdTableRow({ item, active, onOpen, onCopied, onOpenMenu }: EpdT
         <PartyCellView
           party={item.consignee}
           organizationRef={item.organizationRef ?? ""}
+          enrichingEdo={enrichingEdo}
           onCopied={onCopied}
           onOpenMenu={onOpenMenu}
         />

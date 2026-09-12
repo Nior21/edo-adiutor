@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { notifyReady, requestDocument, requestList } from "./bridge";
+import { notifyReady, requestDocument } from "./bridge";
+import { bridgeAsync } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
 import { EpdTableRow } from "./EpdTableRow";
@@ -9,7 +10,16 @@ import { LoadingPlaceholderRow } from "./LoadingPlaceholderRow";
 import { StatusBar } from "./StatusBar";
 import { TableSubhead } from "./TableSubhead";
 import { daysWithItems, filterItems, loadStoredDays, loadStoredQuery } from "./epdSearch";
-import { parseDocumentPayload, parseInitPayload } from "./parsePayload";
+import {
+  parseDocumentPayload,
+  parseEdoDiagnosticsPayload,
+  parseEnrichRowsPayload,
+  parseInitPayload,
+  parseListMetaPayload,
+  parseListPagePayload,
+} from "./parsePayload";
+import { isLoadActive } from "./loadProgressUi";
+import { cancelListLoad, loadRegistryPaginated, type ListLoadProgress } from "./listLoader";
 import { useToast } from "./useToast";
 import type { EpdListItem } from "./types";
 
@@ -21,10 +31,17 @@ const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "
 const ANIM_TEST_MS = 8000;
 
 export default function App() {
-  const [version, setVersion] = useState("0.3.9");
+  const [version, setVersion] = useState("0.5.0");
   const [items, setItems] = useState<EpdListItem[]>([]);
-  const [listLoading, setListLoading] = useState(true);
   const [refreshActive, setRefreshActive] = useState(false);
+  const [loadProgress, setLoadProgress] = useState<ListLoadProgress | null>({
+    phase: "meta",
+    loaded: 0,
+    total: 0,
+    enriched: 0,
+    fetchingRow: false,
+    enrichingRef: null,
+  });
   const [query, setQuery] = useState(loadStoredQuery);
   const [selectedDays, setSelectedDays] = useState<Set<string>>(() => loadStoredDays());
   const [modalRef, setModalRef] = useState<string>("");
@@ -37,20 +54,25 @@ export default function App() {
   const { openAt: openFloatingMenu, portal: floatingMenuPortal } = useFloatingMenu();
 
   const animTestActive = Date.now() < animTestUntil;
+  const listBusy = isLoadActive(loadProgress) || refreshActive;
+  const enrichingRef = loadProgress?.enrichingRef ?? null;
 
   const daysWithData = useMemo(() => daysWithItems(items), [items]);
 
   const visibleItems = useMemo(
-    () => (listLoading ? [] : filterItems(items, query, selectedDays)),
-    [items, listLoading, query, selectedDays],
+    () => filterItems(items, query, selectedDays),
+    [items, query, selectedDays],
   );
 
   const metaText = useMemo(() => {
-    if (listLoading) {
+    if (isLoadActive(loadProgress) && loadProgress && loadProgress.total > 0) {
+      return `${items.length} из ${loadProgress.total}`;
+    }
+    if (isLoadActive(loadProgress)) {
       return "…";
     }
     return `${visibleItems.length} из ${items.length}`;
-  }, [items.length, listLoading, visibleItems.length]);
+  }, [items.length, loadProgress, visibleItems.length]);
 
   const modalItem = useMemo(() => {
     if (modalDoc?.ref === modalRef) {
@@ -74,6 +96,63 @@ export default function App() {
     setDocLoading(false);
   }, []);
 
+  const startListLoad = useCallback(
+    (fromRefresh = false) => {
+      cancelListLoad();
+      setItems([]);
+      setLoadProgress({
+        phase: "meta",
+        loaded: 0,
+        total: 0,
+        enriched: 0,
+        fetchingRow: false,
+        enrichingRef: null,
+      });
+      if (fromRefresh) {
+        setRefreshActive(true);
+      }
+
+      void loadRegistryPaginated({
+        onVersion: setVersion,
+        onProgress: (progress) => {
+          setLoadProgress(progress);
+          if (progress.phase === "done") {
+            setRefreshActive(false);
+            if (progress.loaded > 0) {
+              showToast(`Загружено документов: ${progress.loaded}`);
+            }
+          }
+        },
+        onAppendPage: (pageItems) => {
+          setItems((prev) => [...prev, ...pageItems]);
+        },
+        onEnrichBatch: (updates) => {
+          setItems((prev) =>
+            prev.map((item) => {
+              const update = updates.find((row) => row.ref === item.ref);
+              if (!update) {
+                return item;
+              }
+              return {
+                ...item,
+                shipper: update.shipper,
+                carrier: update.carrier,
+                consignee: update.consignee,
+                partiesPending: false,
+              };
+            }),
+          );
+        },
+        onError: (message) => {
+          setLoadProgress(null);
+          setRefreshActive(false);
+          showToast(message, "error");
+        },
+      });
+    },
+    [showToast],
+  );
+
   useEffect(() => {
     document.body.classList.toggle("modal-open", Boolean(modalRef || aboutOpen));
     return () => {
@@ -96,9 +175,41 @@ export default function App() {
         const payload = parseInitPayload(json);
         setVersion(payload.version);
         setItems(payload.items ?? []);
-        setListLoading(false);
         setRefreshActive(false);
+        setLoadProgress(null);
         showToast(`Загружено документов: ${payload.items?.length ?? 0}`);
+      },
+      setListMeta: (json: unknown) => {
+        const { meta, error } = parseListMetaPayload(json);
+        if (meta) {
+          bridgeAsync.resolveListMeta(meta);
+        } else {
+          bridgeAsync.rejectListMeta(error || "Ошибка метаданных");
+        }
+      },
+      setListPage: (json: unknown) => {
+        const { page, error } = parseListPagePayload(json);
+        if (page) {
+          bridgeAsync.resolveListPage(page);
+        } else {
+          bridgeAsync.rejectListPage(error || "Ошибка страницы");
+        }
+      },
+      setEnrichRows: (json: unknown) => {
+        const { payload, error } = parseEnrichRowsPayload(json);
+        if (payload) {
+          bridgeAsync.resolveEnrichRows(payload);
+        } else {
+          bridgeAsync.rejectEnrichRows(error || "Ошибка обогащения");
+        }
+      },
+      setEdoDiagnostics: (json: unknown) => {
+        const { data, error } = parseEdoDiagnosticsPayload(json);
+        if (data) {
+          bridgeAsync.resolveEdoDiagnostics(data);
+        } else {
+          bridgeAsync.rejectEdoDiagnostics(error || "Ошибка диагностики ЭДО");
+        }
       },
       setDocument: (json: unknown) => {
         const { item, error } = parseDocumentPayload(json);
@@ -120,11 +231,13 @@ export default function App() {
     });
 
     notifyReady();
+    startListLoad();
 
     return () => {
+      cancelListLoad();
       window.__edoBridgeRegister(undefined);
     };
-  }, [mergeItem, showToast]);
+  }, [mergeItem, showToast, startListLoad]);
 
   const openModal = (ref: string) => {
     const row = visibleItems.find((item) => item.ref === ref) ?? items.find((item) => item.ref === ref);
@@ -145,14 +258,11 @@ export default function App() {
   };
 
   const handleRefresh = () => {
-    if (refreshActive || listLoading) {
+    if (listBusy) {
       return;
     }
-    setRefreshActive(true);
-    setListLoading(true);
     closeModal();
-    showToast("Обновление списка…");
-    requestList();
+    startListLoad(true);
   };
 
   const runAnimTest = () => {
@@ -160,12 +270,16 @@ export default function App() {
     showToast(`Тест анимаций: ${ANIM_TEST_MS / 1000} сек.`);
   };
 
+  const showInitialSkeleton =
+    loadProgress?.phase === "meta" || (Boolean(loadProgress?.fetchingRow) && items.length === 0);
+  const showNextRowSkeleton = Boolean(loadProgress?.fetchingRow) && items.length > 0;
+
   return (
     <div className="layout layout-full layout-shell">
       <div className="main-card">
         <TableSubhead
           metaText={metaText}
-          listLoading={listLoading}
+          listLoading={listBusy}
           refreshActive={refreshActive}
           selectedDays={selectedDays}
           daysWithData={daysWithData}
@@ -190,35 +304,38 @@ export default function App() {
             </thead>
             <tbody>
               {animTestActive ? <LoadingAnimationLab /> : null}
-              {listLoading ? (
-                <LoadingPlaceholderRow />
-              ) : (
-                <>
-                  {visibleItems.map((item) => (
-                    <EpdTableRow
-                      key={item.ref}
-                      item={item}
-                      active={item.ref === modalRef}
-                      onOpen={openModal}
-                      onCopied={handleCopied}
-                      onOpenMenu={openFloatingMenu}
-                    />
-                  ))}
-                  {!listLoading && visibleItems.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="muted center">
-                        {items.length === 0 ? "В реестре ЭПД нет документов." : "Нет документов за выбранные условия."}
-                      </td>
-                    </tr>
-                  )}
-                </>
+              {showInitialSkeleton ? <LoadingPlaceholderRow /> : null}
+              {visibleItems.map((item) => (
+                <EpdTableRow
+                  key={item.ref}
+                  item={item}
+                  active={item.ref === modalRef}
+                  enrichingEdo={enrichingRef === item.ref}
+                  onOpen={openModal}
+                  onCopied={handleCopied}
+                  onOpenMenu={openFloatingMenu}
+                />
+              ))}
+              {showNextRowSkeleton ? <LoadingPlaceholderRow /> : null}
+              {!listBusy && visibleItems.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="muted center">
+                    {items.length === 0 ? "В реестре ЭПД нет документов." : "Нет документов за выбранные условия."}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <StatusBar toast={toast} hint={TABLE_HINT} version={version} onAboutOpen={() => setAboutOpen(true)} />
+      <StatusBar
+        toast={toast}
+        hint={TABLE_HINT}
+        version={version}
+        loadProgress={loadProgress}
+        onAboutOpen={() => setAboutOpen(true)}
+      />
 
       <DocumentModal
         open={Boolean(modalRef && modalItem)}
