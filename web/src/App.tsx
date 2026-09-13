@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { notifyReady, requestDocument } from "./bridge";
+import { notifyReady, requestApplyUpdate, requestCheckUpdate, requestDocument } from "./bridge";
 import { bridgeAsync } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
@@ -18,11 +18,13 @@ import {
   parseInitPayload,
   parseListMetaPayload,
   parseListPagePayload,
+  parseUpdateInfoPayload,
 } from "./parsePayload";
+import { UpdatePanel } from "./UpdatePanel";
 import { isLoadActive } from "./loadProgressUi";
 import { cancelListLoad, loadRegistryPaginated, type ListLoadProgress } from "./listLoader";
 import { useToast } from "./useToast";
-import type { EpdListItem } from "./types";
+import type { EpdListItem, UpdateInfoPayload } from "./types";
 
 const TABLE_HINT =
   "Клик по строке — карточка. Клик по тексту — копирование. ПКМ — меню. ⋮ — действия строки. М — наша организация.";
@@ -32,7 +34,9 @@ const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "
 const ANIM_TEST_MS = 8000;
 
 export default function App() {
-  const [version, setVersion] = useState("0.5.5");
+  const [version, setVersion] = useState("0.6.0");
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfoPayload | null>(null);
+  const [updateApplying, setUpdateApplying] = useState(false);
   const [items, setItems] = useState<EpdListItem[]>([]);
   const [refreshActive, setRefreshActive] = useState(false);
   const [loadProgress, setLoadProgress] = useState<ListLoadProgress | null>({
@@ -220,6 +224,24 @@ export default function App() {
           bridgeAsync.rejectEdoOnlineIds(error || "Ошибка загрузки ID из сервиса ЭДО");
         }
       },
+      setUpdateInfo: (json: unknown) => {
+        const payload = parseUpdateInfoPayload(json);
+        if (!payload) {
+          return;
+        }
+        setUpdateInfo(payload);
+        if (payload.phase === "apply") {
+          setUpdateApplying(false);
+          if (payload.success && payload.latestVersion) {
+            setVersion(payload.latestVersion);
+          }
+          if (payload.message) {
+            showToast(payload.message, payload.success ? "info" : "error");
+          }
+        } else if (payload.currentVersion) {
+          setVersion(payload.currentVersion);
+        }
+      },
       setDocument: (json: unknown) => {
         const { item, error } = parseDocumentPayload(json);
         if (!item) {
@@ -279,6 +301,15 @@ export default function App() {
     showToast(`Тест анимаций: ${ANIM_TEST_MS / 1000} сек.`);
   };
 
+  const handleApplyUpdate = useCallback((targetPath?: string) => {
+    setUpdateApplying(true);
+    requestApplyUpdate(targetPath);
+  }, []);
+
+  const handleRefreshUpdateCheck = useCallback(() => {
+    requestCheckUpdate();
+  }, []);
+
   const showInitialSkeleton =
     loadProgress?.phase === "meta" || (Boolean(loadProgress?.fetchingRow) && items.length === 0);
   const showNextRowSkeleton = Boolean(loadProgress?.fetchingRow) && items.length > 0;
@@ -286,6 +317,13 @@ export default function App() {
   return (
     <div className="layout layout-full layout-shell">
       <div className="main-card">
+        <UpdatePanel
+          info={updateInfo}
+          applying={updateApplying}
+          onRefreshCheck={handleRefreshUpdateCheck}
+          onApply={handleApplyUpdate}
+        />
+
         <TableSubhead
           metaText={metaText}
           listLoading={listBusy}
@@ -356,7 +394,15 @@ export default function App() {
         onCopied={handleCopied}
       />
 
-      <AboutModal open={aboutOpen} version={version} onClose={() => setAboutOpen(false)} />
+      <AboutModal
+        open={aboutOpen}
+        version={version}
+        updateInfo={updateInfo}
+        updateApplying={updateApplying}
+        onRefreshUpdateCheck={handleRefreshUpdateCheck}
+        onApplyUpdate={handleApplyUpdate}
+        onClose={() => setAboutOpen(false)}
+      />
 
       {floatingMenuPortal}
     </div>

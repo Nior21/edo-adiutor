@@ -51,6 +51,10 @@ function buildHref(payload: BridgeAction): string {
     params.set("refs", payload.refs ?? "");
   }
 
+  if ("targetPath" in payload && payload.targetPath !== undefined) {
+    params.set("targetPath", payload.targetPath ?? "");
+  }
+
   return `onec:bridge?${params.toString()}`;
 }
 
@@ -121,6 +125,18 @@ export function requestEdoDiagnosticsLocal(orgRef: string, entityRef: string, ed
 
 export function requestEdoDiagnosticsOnline(orgRef: string, entityRef: string): void {
   call1C({ action: "getEdoDiagnosticsOnline", orgRef, entityRef, edoId: "" });
+}
+
+export function requestCheckUpdate(): void {
+  call1C({ action: "checkUpdate" });
+}
+
+export function requestPickEpfPath(): void {
+  call1C({ action: "pickEpfPath" });
+}
+
+export function requestApplyUpdate(targetPath?: string): void {
+  call1C({ action: "applyUpdate", targetPath: targetPath ?? "" });
 }
 
 /** Форма НастройкаОбменаСКонтрагентом — выбор активного ID в настройках отправки. */

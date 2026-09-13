@@ -1559,6 +1559,69 @@ body.modal-open {
   color: #1040a0;
 }
 
+.update-banner {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+}
+
+.update-banner-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+}
+
+.update-banner-ok {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.update-banner-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.update-banner-error-text {
+  color: #b91c1c;
+  margin: 0 0 6px;
+}
+
+.update-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.update-btn-primary {
+  font-weight: 600;
+}
+
+.update-path {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.about-update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.about-update-error {
+  color: #b91c1c;
+}
+
+.about-epf-path {
+  word-break: break-all;
+  font-size: 0.82rem;
+}
+
 .edo-diag-hint {
   margin: 8px 0 0;
   font-size: 0.78rem;

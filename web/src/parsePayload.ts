@@ -6,6 +6,7 @@ import type {
   InitPayload,
   ListMetaPayload,
   ListPagePayload,
+  UpdateInfoPayload,
 } from "./types";
 
 export function parseJsonValue<T>(value: unknown, fallback: T): T {
@@ -146,6 +147,28 @@ export function parseEdoOnlineIdsPayload(value: unknown): { payload: EdoOnlineId
       loadWarning: parsed.loadWarning ?? "",
     },
     error: "",
+  };
+}
+
+export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null {
+  const parsed = parseJsonValue<UpdateInfoPayload | null>(value, null);
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  const phase = parsed.phase === "apply" ? "apply" : "check";
+  return {
+    phase,
+    currentVersion: parsed.currentVersion ?? "",
+    latestVersion: parsed.latestVersion ?? "",
+    updateAvailable: parsed.updateAvailable === true,
+    manifestConfigured: parsed.manifestConfigured === true,
+    epfPath: parsed.epfPath ?? "",
+    epfUrl: parsed.epfUrl ?? "",
+    notes: parsed.notes ?? "",
+    error: parsed.error ?? "",
+    success: parsed.success === true,
+    message: parsed.message ?? "",
+    targetPath: parsed.targetPath ?? "",
   };
 }
 

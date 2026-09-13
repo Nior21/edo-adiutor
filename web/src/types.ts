@@ -123,8 +123,26 @@ export type EdoOnlineIdsPayload = {
   error?: string;
 };
 
+export type UpdateInfoPayload = {
+  phase: "check" | "apply";
+  currentVersion?: string;
+  latestVersion?: string;
+  updateAvailable?: boolean;
+  manifestConfigured?: boolean;
+  epfPath?: string;
+  epfUrl?: string;
+  notes?: string;
+  error?: string;
+  success?: boolean;
+  message?: string;
+  targetPath?: string;
+};
+
 export type BridgeAction =
   | { action: "ready" }
+  | { action: "checkUpdate" }
+  | { action: "pickEpfPath" }
+  | { action: "applyUpdate"; targetPath?: string }
   | { action: "getList" }
   | { action: "getListMeta" }
   | { action: "getListPage"; offset: string; limit: string }
