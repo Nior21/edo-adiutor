@@ -22,7 +22,7 @@ export function useToast(durationMs = DEFAULT_DURATION_MS) {
   }, []);
 
   const showToast = useCallback(
-    (message: string, kind: ToastKind = "info") => {
+    (message: string, kind: ToastKind = "info", customDurationMs?: number) => {
       if (!message) {
         return;
       }
@@ -30,10 +30,11 @@ export function useToast(durationMs = DEFAULT_DURATION_MS) {
         window.clearTimeout(timerRef.current);
       }
       setToast({ message, kind });
+      const ms = customDurationMs ?? (kind === "error" ? Math.max(durationMs, 12000) : durationMs);
       timerRef.current = window.setTimeout(() => {
         timerRef.current = null;
         setToast(null);
-      }, durationMs);
+      }, ms);
     },
     [durationMs],
   );

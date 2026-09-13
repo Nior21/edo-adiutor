@@ -33,7 +33,7 @@ const TABLE_HINT =
 const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
 
 export default function App() {
-  const [version, setVersion] = useState("0.8.3");
+  const [version, setVersion] = useState("0.8.4");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfoPayload | null>(null);
   const [updateApplying, setUpdateApplying] = useState(false);
   const [updateChecking, setUpdateChecking] = useState(true);
@@ -183,6 +183,9 @@ export default function App() {
         showToast(`Доступна новая версия v${payload.targetVersion}`, "info");
         return;
       }
+      if (payload.error) {
+        showToast(payload.error, "error", 15000);
+      }
       beginDataLoadIfNeeded();
     },
     [beginDataLoadIfNeeded, showToast],
@@ -261,6 +264,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!updateChecking) {
+      return;
+    }
+    const watchdog = window.setTimeout(() => {
+      setUpdateChecking(false);
+      pendingVersionPicker.current = false;
+      showToast("Проверка обновлений заняла слишком долго — продолжаем загрузку реестра.", "error", 15000);
+      beginDataLoadIfNeeded();
+    }, 25000);
+    return () => window.clearTimeout(watchdog);
+  }, [updateChecking, beginDataLoadIfNeeded, showToast]);
+
+  useEffect(() => {
     document.body.classList.toggle("modal-open", Boolean(modalRef || aboutOpen || updateOfferOpen || versionPickerOpen));
     return () => {
       document.body.classList.remove("modal-open");
@@ -320,14 +336,20 @@ export default function App() {
       setUpdateInfo: (json: unknown) => {
         const payload = parseUpdateInfoPayload(json);
         if (!payload) {
+          setUpdateChecking(false);
+          pendingVersionPicker.current = false;
+          showToast("Не удалось разобрать ответ проверки обновлений.", "error", 15000);
+          beginDataLoadIfNeeded();
           return;
         }
         setUpdateInfo(payload);
         if (payload.phase === "superseded" || payload.uiMode === "superseded") {
           setUpdateApplying(false);
+          setUpdateChecking(false);
           setUpdateOfferOpen(false);
         } else if (payload.phase === "apply") {
           setUpdateApplying(false);
+          setUpdateChecking(false);
           if (payload.success && payload.latestVersion) {
             setVersion(payload.latestVersion);
           }
@@ -361,7 +383,11 @@ export default function App() {
         showToast(message);
       },
       setError: (message: string) => {
-        showToast(message, "error");
+        setUpdateChecking(false);
+        setUpdateApplying(false);
+        pendingVersionPicker.current = false;
+        showToast(message, "error", 15000);
+        beginDataLoadIfNeeded();
       },
     });
 
@@ -371,7 +397,7 @@ export default function App() {
       cancelListLoad();
       window.__edoBridgeRegister(undefined);
     };
-  }, [handleUpdateCheckPayload, mergeItem, showToast]);
+  }, [beginDataLoadIfNeeded, handleUpdateCheckPayload, mergeItem, showToast]);
 
   const openModal = (ref: string) => {
     const row = visibleItems.find((item) => item.ref === ref) ?? items.find((item) => item.ref === ref);
