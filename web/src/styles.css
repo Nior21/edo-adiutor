@@ -1772,6 +1772,7 @@ body.modal-open {
   background: #f9fafb;
   cursor: pointer;
   font: inherit;
+  color: #101828;
 }
 
 .version-picker-item:hover:not(:disabled) {
@@ -1780,12 +1781,29 @@ body.modal-open {
 }
 
 .version-picker-item-current {
-  opacity: 0.65;
   cursor: default;
+  background: #eef2f6;
+  border-color: #d0d5dd;
+}
+
+.version-picker-item-current .version-picker-ver {
+  color: #475467;
+}
+
+.version-picker-item .version-picker-action {
+  color: #475467;
+  font-size: 0.82rem;
 }
 
 .version-picker-ver {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #101828;
+  letter-spacing: 0.02em;
+}
+
+.version-picker-item-remote .version-picker-ver {
+  color: #14532d;
 }
 
 .about-update-actions {

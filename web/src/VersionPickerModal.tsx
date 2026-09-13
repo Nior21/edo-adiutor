@@ -83,7 +83,7 @@ export function VersionPickerModal({
                   onClick={() => onSelect(item)}
                 >
                   <span className="version-picker-ver">v{item.version}</span>
-                  <span className="muted">{itemLabel(item)}</span>
+                  <span className="version-picker-action">{itemLabel(item)}</span>
                 </button>
               </li>
             );
