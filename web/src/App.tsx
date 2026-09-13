@@ -515,9 +515,8 @@ export default function App() {
     [updateInfo?.epfPath, updateInfo?.epfUrl],
   );
 
-  const showInitialSkeleton =
-    loadProgress?.phase === "meta" || (Boolean(loadProgress?.fetchingRow) && items.length === 0);
-  const showNextRowSkeleton = Boolean(loadProgress?.fetchingRow) && items.length > 0;
+  /** Заглушка только до первой строки реестра; дальше прогресс — в статус-баре. */
+  const showInitialSkeleton = items.length === 0 && isLoadActive(loadProgress);
 
   return (
     <div className={`layout layout-full layout-shell ${superseded ? "layout-superseded" : ""}`}>
@@ -564,7 +563,6 @@ export default function App() {
                   onOpenMenu={openFloatingMenu}
                 />
               ))}
-              {showNextRowSkeleton ? <LoadingPlaceholderRow /> : null}
               {!listBusy && !updateChecking && visibleItems.length === 0 && dataLoadStarted.current && (
                 <tr>
                   <td colSpan={5} className="muted center">
