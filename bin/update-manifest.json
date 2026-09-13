@@ -1,0 +1,5 @@
+{
+  "version": "0.6.2",
+  "epfUrl": "https://example.com/dist/ПомощникДляЭДО.epf",
+  "notes": "Релизы в bin/releases/{version}; якорный .epf не перезаписывается — открывается новое окно."
+}

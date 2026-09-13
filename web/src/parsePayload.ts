@@ -155,12 +155,41 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
   if (!parsed || typeof parsed !== "object") {
     return null;
   }
-  const phase = parsed.phase === "apply" ? "apply" : "check";
+  let phase: UpdateInfoPayload["phase"] = "check";
+  if (parsed.phase === "apply") {
+    phase = "apply";
+  } else if (parsed.phase === "superseded" || parsed.uiMode === "superseded") {
+    phase = "superseded";
+  }
+  const uiMode = parsed.uiMode === "superseded" ? "superseded" : "normal";
+  const localReleases = Array.isArray(parsed.localReleases)
+    ? parsed.localReleases
+        .map((row) => {
+          if (!row || typeof row !== "object") {
+            return null;
+          }
+          const version = "version" in row && typeof row.version === "string" ? row.version : "";
+          if (!version) {
+            return null;
+          }
+          const path = "path" in row && typeof row.path === "string" ? row.path : "";
+          return { version, path };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null)
+    : [];
+
   return {
     phase,
+    uiMode,
     currentVersion: parsed.currentVersion ?? "",
     latestVersion: parsed.latestVersion ?? "",
+    remoteLatestVersion: parsed.remoteLatestVersion ?? "",
+    targetVersion: parsed.targetVersion ?? "",
+    localLatestVersion: parsed.localLatestVersion ?? "",
+    localHasTarget: parsed.localHasTarget === true,
+    localReleases,
     updateAvailable: parsed.updateAvailable === true,
+    autoSwitchRecommended: parsed.autoSwitchRecommended === true,
     manifestConfigured: parsed.manifestConfigured === true,
     epfPath: parsed.epfPath ?? "",
     epfUrl: parsed.epfUrl ?? "",
@@ -169,6 +198,8 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
     success: parsed.success === true,
     message: parsed.message ?? "",
     targetPath: parsed.targetPath ?? "",
+    launchedVersion: parsed.launchedVersion ?? "",
+    launchedPath: parsed.launchedPath ?? "",
   };
 }
 

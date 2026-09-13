@@ -55,6 +55,14 @@ function buildHref(payload: BridgeAction): string {
     params.set("targetPath", payload.targetPath ?? "");
   }
 
+  if ("releaseVer" in payload && payload.releaseVer !== undefined) {
+    params.set("releaseVer", payload.releaseVer ?? "");
+  }
+
+  if ("epfUrl" in payload && payload.epfUrl !== undefined) {
+    params.set("epfUrl", payload.epfUrl ?? "");
+  }
+
   return `onec:bridge?${params.toString()}`;
 }
 
@@ -135,8 +143,17 @@ export function requestPickEpfPath(): void {
   call1C({ action: "pickEpfPath" });
 }
 
-export function requestApplyUpdate(targetPath?: string): void {
-  call1C({ action: "applyUpdate", targetPath: targetPath ?? "" });
+export function requestApplyUpdate(targetPath?: string, releaseVer?: string, epfUrl?: string): void {
+  call1C({
+    action: "applyUpdate",
+    targetPath: targetPath ?? "",
+    releaseVer: releaseVer ?? "",
+    epfUrl: epfUrl ?? "",
+  });
+}
+
+export function requestOpenRelease(releaseVer: string): void {
+  call1C({ action: "openRelease", releaseVer });
 }
 
 /** Форма НастройкаОбменаСКонтрагентом — выбор активного ID в настройках отправки. */

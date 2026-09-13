@@ -4,3 +4,5 @@ web/dist/
 *.local.md
 .DS_Store
 Thumbs.db
+bin/*.epf
+bin/releases/

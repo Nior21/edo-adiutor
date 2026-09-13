@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
-  "epfUrl": "https://example.com/dist/ПомощникДляЭДО.epf",
-  "notes": "Краткое описание изменений для пользователя."
+  "version": "0.6.1",
+  "epfUrl": "https://raw.githubusercontent.com/ORG/REPO/main/bin/releases/0.6.1/ПомощникДляЭДО.epf",
+  "notes": "Краткое описание изменений. Файл кладётся в bin/releases/{version}/, якорный .epf не перезаписывается."
 }

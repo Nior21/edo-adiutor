@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { notifyReady, requestApplyUpdate, requestCheckUpdate, requestDocument } from "./bridge";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { fetchLatestGithubRelease, type GithubReleaseInfo } from "./githubReleases";
+import { mergeGithubIntoUpdateInfo } from "./mergeUpdateInfo";
+import { notifyReady, requestApplyUpdate, requestCheckUpdate, requestDocument, requestOpenRelease } from "./bridge";
 import { bridgeAsync } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
@@ -20,7 +22,9 @@ import {
   parseListPagePayload,
   parseUpdateInfoPayload,
 } from "./parsePayload";
+import { SupersededOverlay } from "./SupersededOverlay";
 import { UpdatePanel } from "./UpdatePanel";
+import { VersionPickerModal } from "./VersionPickerModal";
 import { isLoadActive } from "./loadProgressUi";
 import { cancelListLoad, loadRegistryPaginated, type ListLoadProgress } from "./listLoader";
 import { useToast } from "./useToast";
@@ -34,8 +38,12 @@ const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "
 const ANIM_TEST_MS = 8000;
 
 export default function App() {
-  const [version, setVersion] = useState("0.6.0");
+  const [version, setVersion] = useState("0.7.0");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfoPayload | null>(null);
+  const [updateBaseFrom1c, setUpdateBaseFrom1c] = useState<UpdateInfoPayload | null>(null);
+  const [githubRelease, setGithubRelease] = useState<GithubReleaseInfo | null>(null);
+  const [githubError, setGithubError] = useState("");
+  const autoUpdateTriggered = useRef(false);
   const [updateApplying, setUpdateApplying] = useState(false);
   const [items, setItems] = useState<EpdListItem[]>([]);
   const [refreshActive, setRefreshActive] = useState(false);
@@ -54,6 +62,7 @@ export default function App() {
   const [docLoading, setDocLoading] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [versionPickerOpen, setVersionPickerOpen] = useState(false);
   const [animTestUntil, setAnimTestUntil] = useState(0);
   const { toast, showToast } = useToast();
   const { openAt: openFloatingMenu, portal: floatingMenuPortal } = useFloatingMenu();
@@ -229,8 +238,14 @@ export default function App() {
         if (!payload) {
           return;
         }
-        setUpdateInfo(payload);
-        if (payload.phase === "apply") {
+        if (payload.phase === "check") {
+          setUpdateBaseFrom1c(payload);
+        } else {
+          setUpdateInfo(payload);
+        }
+        if (payload.phase === "superseded" || payload.uiMode === "superseded") {
+          setUpdateApplying(false);
+        } else if (payload.phase === "apply") {
           setUpdateApplying(false);
           if (payload.success && payload.latestVersion) {
             setVersion(payload.latestVersion);
@@ -238,8 +253,11 @@ export default function App() {
           if (payload.message) {
             showToast(payload.message, payload.success ? "info" : "error");
           }
-        } else if (payload.currentVersion) {
-          setVersion(payload.currentVersion);
+        } else {
+          setUpdateApplying(false);
+          if (payload.currentVersion) {
+            setVersion(payload.currentVersion);
+          }
         }
       },
       setDocument: (json: unknown) => {
@@ -269,6 +287,53 @@ export default function App() {
       window.__edoBridgeRegister(undefined);
     };
   }, [mergeItem, showToast, startListLoad]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const latest = await fetchLatestGithubRelease();
+        if (!cancelled) {
+          setGithubRelease(latest);
+          setGithubError(latest ? "" : "На GitHub пока нет опубликованного Release с .epf.");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setGithubRelease(null);
+          setGithubError(error instanceof Error ? error.message : "Не удалось запросить GitHub Releases.");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (updateInfo?.phase === "superseded" || updateInfo?.uiMode === "superseded") {
+      return;
+    }
+    const merged = mergeGithubIntoUpdateInfo(updateBaseFrom1c, version, githubRelease, githubError);
+    setUpdateInfo(merged);
+  }, [updateBaseFrom1c, version, githubRelease, githubError, updateInfo?.phase, updateInfo?.uiMode]);
+
+  useEffect(() => {
+    const isSuperseded = updateInfo?.uiMode === "superseded" || updateInfo?.phase === "superseded";
+    if (autoUpdateTriggered.current || isSuperseded) {
+      return;
+    }
+    if (!updateInfo?.autoSwitchRecommended || !updateInfo.updateAvailable) {
+      return;
+    }
+    if (!updateInfo.epfPath || !updateInfo.targetVersion || !updateInfo.epfUrl) {
+      return;
+    }
+    autoUpdateTriggered.current = true;
+    setUpdateApplying(true);
+    window.setTimeout(() => {
+      requestApplyUpdate(updateInfo.epfPath, updateInfo.targetVersion, updateInfo.epfUrl);
+    }, 400);
+  }, [updateInfo]);
 
   const openModal = (ref: string) => {
     const row = visibleItems.find((item) => item.ref === ref) ?? items.find((item) => item.ref === ref);
@@ -301,10 +366,13 @@ export default function App() {
     showToast(`Тест анимаций: ${ANIM_TEST_MS / 1000} сек.`);
   };
 
-  const handleApplyUpdate = useCallback((targetPath?: string) => {
-    setUpdateApplying(true);
-    requestApplyUpdate(targetPath);
-  }, []);
+  const handleApplyUpdate = useCallback(
+    (targetPath?: string) => {
+      setUpdateApplying(true);
+      requestApplyUpdate(targetPath, updateInfo?.targetVersion, updateInfo?.epfUrl);
+    },
+    [updateInfo?.targetVersion, updateInfo?.epfUrl],
+  );
 
   const handleRefreshUpdateCheck = useCallback(() => {
     requestCheckUpdate();
@@ -313,9 +381,17 @@ export default function App() {
   const showInitialSkeleton =
     loadProgress?.phase === "meta" || (Boolean(loadProgress?.fetchingRow) && items.length === 0);
   const showNextRowSkeleton = Boolean(loadProgress?.fetchingRow) && items.length > 0;
+  const superseded = updateInfo?.uiMode === "superseded" || updateInfo?.phase === "superseded";
+  const localReleases = updateInfo?.localReleases ?? [];
 
   return (
-    <div className="layout layout-full layout-shell">
+    <div className={`layout layout-full layout-shell ${superseded ? "layout-superseded" : ""}`}>
+      {superseded ? (
+        <SupersededOverlay
+          message={updateInfo?.message ?? "Запущена более новая версия обработки."}
+          launchedVersion={updateInfo?.launchedVersion}
+        />
+      ) : null}
       <div className="main-card">
         <UpdatePanel
           info={updateInfo}
@@ -382,6 +458,8 @@ export default function App() {
         version={version}
         loadProgress={loadProgress}
         onAboutOpen={() => setAboutOpen(true)}
+        versionClickable={!superseded && Boolean(updateInfo?.epfPath)}
+        onVersionClick={() => setVersionPickerOpen(true)}
       />
 
       <DocumentModal
@@ -402,6 +480,17 @@ export default function App() {
         onRefreshUpdateCheck={handleRefreshUpdateCheck}
         onApplyUpdate={handleApplyUpdate}
         onClose={() => setAboutOpen(false)}
+      />
+
+      <VersionPickerModal
+        open={versionPickerOpen && !superseded}
+        currentVersion={version}
+        releases={localReleases}
+        onSelect={(releaseVer) => {
+          setVersionPickerOpen(false);
+          requestOpenRelease(releaseVer);
+        }}
+        onClose={() => setVersionPickerOpen(false)}
       />
 
       {floatingMenuPortal}

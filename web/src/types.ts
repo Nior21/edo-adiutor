@@ -123,11 +123,23 @@ export type EdoOnlineIdsPayload = {
   error?: string;
 };
 
+export type LocalReleaseInfo = {
+  version: string;
+  path?: string;
+};
+
 export type UpdateInfoPayload = {
-  phase: "check" | "apply";
+  phase: "check" | "apply" | "superseded";
+  uiMode?: "normal" | "superseded";
   currentVersion?: string;
   latestVersion?: string;
+  remoteLatestVersion?: string;
+  targetVersion?: string;
+  localLatestVersion?: string;
+  localHasTarget?: boolean;
+  localReleases?: LocalReleaseInfo[];
   updateAvailable?: boolean;
+  autoSwitchRecommended?: boolean;
   manifestConfigured?: boolean;
   epfPath?: string;
   epfUrl?: string;
@@ -136,13 +148,17 @@ export type UpdateInfoPayload = {
   success?: boolean;
   message?: string;
   targetPath?: string;
+  launchedVersion?: string;
+  launchedPath?: string;
+  githubReleaseUrl?: string;
 };
 
 export type BridgeAction =
   | { action: "ready" }
   | { action: "checkUpdate" }
   | { action: "pickEpfPath" }
-  | { action: "applyUpdate"; targetPath?: string }
+  | { action: "applyUpdate"; targetPath?: string; releaseVer?: string; epfUrl?: string }
+  | { action: "openRelease"; releaseVer: string }
   | { action: "getList" }
   | { action: "getListMeta" }
   | { action: "getListPage"; offset: string; limit: string }

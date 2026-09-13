@@ -8,9 +8,19 @@ type StatusBarProps = {
   version: string;
   loadProgress: ListLoadProgress | null;
   onAboutOpen: () => void;
+  onVersionClick?: () => void;
+  versionClickable?: boolean;
 };
 
-export function StatusBar({ toast, hint, version, loadProgress, onAboutOpen }: StatusBarProps) {
+export function StatusBar({
+  toast,
+  hint,
+  version,
+  loadProgress,
+  onAboutOpen,
+  onVersionClick,
+  versionClickable,
+}: StatusBarProps) {
   const isError = toast?.kind === "error";
   const loading = isLoadActive(loadProgress);
   const percent = loadProgress ? loadProgressPercent(loadProgress) : 0;
@@ -48,9 +58,20 @@ export function StatusBar({ toast, hint, version, loadProgress, onAboutOpen }: S
         >
           ?
         </button>
-        <span className="status-version-badge" title={`Версия ${version}`}>
-          v{version}
-        </span>
+        {versionClickable && onVersionClick ? (
+          <button
+            type="button"
+            className="status-version-badge status-version-btn"
+            title="Локальные версии на диске"
+            onClick={onVersionClick}
+          >
+            v{version}
+          </button>
+        ) : (
+          <span className="status-version-badge" title={`Версия ${version}`}>
+            v{version}
+          </span>
+        )}
       </div>
     </footer>
   );

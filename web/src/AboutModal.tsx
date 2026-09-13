@@ -52,7 +52,9 @@ export function AboutModal({
           <dt>Обновления</dt>
           <dd>
             {!updateInfo?.manifestConfigured ? (
-              <span className="muted">URL манифеста не задан в ObjectModule.URLМанифестаОбновлений</span>
+              <span className="muted">
+                Для прода — URL в ObjectModule; для разработки — update-manifest.json рядом с .epf в bin
+              </span>
             ) : updateInfo.error ? (
               <span className="about-update-error">{updateInfo.error}</span>
             ) : updateInfo.updateAvailable ? (
@@ -79,7 +81,7 @@ export function AboutModal({
                 disabled={updateApplying}
                 onClick={() => onApplyUpdate(updateInfo.epfPath)}
               >
-                {updateApplying ? "Загрузка…" : "Обновить файл .epf"}
+                {updateApplying ? "Подготовка…" : "Скачать / открыть новую версию"}
               </button>
             ) : null}
             <button type="button" className="button-ghost" onClick={onRefreshUpdateCheck}>
