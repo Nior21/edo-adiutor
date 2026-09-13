@@ -5,7 +5,6 @@ import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
 import { EpdTableRow } from "./EpdTableRow";
 import { useFloatingMenu } from "./FloatingMenu";
-import { LoadingPlaceholderRow } from "./LoadingPlaceholderRow";
 import { StatusBar } from "./StatusBar";
 import { TableSubhead } from "./TableSubhead";
 import { UpdateOfferModal } from "./UpdateOfferModal";
@@ -515,9 +514,6 @@ export default function App() {
     [updateInfo?.epfPath, updateInfo?.epfUrl],
   );
 
-  /** Заглушка только до первой строки реестра; дальше прогресс — в статус-баре. */
-  const showInitialSkeleton = items.length === 0 && isLoadActive(loadProgress);
-
   return (
     <div className={`layout layout-full layout-shell ${superseded ? "layout-superseded" : ""}`}>
       {superseded ? (
@@ -551,7 +547,6 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {showInitialSkeleton ? <LoadingPlaceholderRow /> : null}
               {visibleItems.map((item) => (
                 <EpdTableRow
                   key={item.ref}
