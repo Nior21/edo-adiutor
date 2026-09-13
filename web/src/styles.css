@@ -108,21 +108,57 @@ body.modal-open {
 .button-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  padding: 5px 12px 5px 6px;
+  min-height: 36px;
+}
+
+.button-refresh-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  border-radius: 7px;
+  background: #f2f4f7;
+  color: #475467;
+  flex-shrink: 0;
+}
+
+.button-refresh-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.button-refresh:hover:not(:disabled) .button-refresh-icon {
+  background: #eef4ff;
+  color: #2563eb;
 }
 
 .button-refresh.is-busy {
-  color: #2563eb;
+  color: #1d4f91;
   border-color: #93b4ef;
   background: #eef4ff;
 }
 
-.button-refresh.is-busy .ico-refresh {
-  animation: spin-refresh 0.85s linear infinite;
+.button-refresh.is-busy .button-refresh-icon {
+  background: #dbeafe;
   color: #2563eb;
 }
 
+.button-refresh.is-busy .ico-refresh {
+  animation: spin-refresh 0.85s linear infinite;
+}
+
+.button-refresh:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
 .ico-refresh {
+  display: block;
   flex-shrink: 0;
 }
 

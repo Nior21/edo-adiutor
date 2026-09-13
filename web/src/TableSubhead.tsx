@@ -80,11 +80,24 @@ export function TableSubhead({
           aria-busy={showRefreshBusy}
           title="Обновить список"
         >
-          <svg className="ico-refresh" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M21 12a9 9 0 1 1-2.6-6.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            <path d="M21 3v6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Обновить</span>
+          <span className="button-refresh-icon" aria-hidden="true">
+            <svg className="ico-refresh" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 12a8 8 0 1 1-2.34-5.66"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M20 4v5h-5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="button-refresh-label">Обновить</span>
         </button>
       </div>
     </div>
