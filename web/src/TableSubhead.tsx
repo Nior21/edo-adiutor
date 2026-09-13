@@ -81,7 +81,7 @@ export function TableSubhead({
           title="Обновить список"
         >
           <span className="button-refresh-icon" aria-hidden="true">
-            <svg className="ico-refresh" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg className="ico-refresh" width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path
                 d="M20 12a8 8 0 1 1-2.34-5.66"
                 stroke="currentColor"

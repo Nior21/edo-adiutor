@@ -108,32 +108,30 @@ body.modal-open {
 .button-refresh {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px 5px 6px;
-  min-height: 36px;
+  gap: 0;
+  padding: 6px 10px;
+  min-height: 34px;
 }
 
 .button-refresh-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-right: 10px;
-  border-radius: 7px;
-  background: #f2f4f7;
-  color: #475467;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  color: #667085;
   flex-shrink: 0;
 }
 
 .button-refresh-label {
   font-weight: 500;
-  font-size: 0.9rem;
-  line-height: 1.2;
+  font-size: 0.88rem;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .button-refresh:hover:not(:disabled) .button-refresh-icon {
-  background: #eef4ff;
   color: #2563eb;
 }
 
@@ -144,12 +142,11 @@ body.modal-open {
 }
 
 .button-refresh.is-busy .button-refresh-icon {
-  background: #dbeafe;
   color: #2563eb;
 }
 
 .button-refresh.is-busy .ico-refresh {
-  animation: spin-refresh 0.85s linear infinite;
+  animation: spin-refresh 0.9s linear infinite;
 }
 
 .button-refresh:disabled {
@@ -170,14 +167,14 @@ body.modal-open {
 
 @-webkit-keyframes spin-refresh {
   to {
-    -webkit-transform: rotate(-360deg);
-    transform: rotate(-360deg);
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
 @keyframes spin-refresh {
   to {
-    transform: rotate(-360deg);
+    transform: rotate(360deg);
   }
 }
 

@@ -33,7 +33,7 @@ const TABLE_HINT =
 const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
 
 export default function App() {
-  const [version, setVersion] = useState("0.8.4");
+  const [version, setVersion] = useState("0.8.5");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfoPayload | null>(null);
   const [updateApplying, setUpdateApplying] = useState(false);
   const [updateChecking, setUpdateChecking] = useState(true);
