@@ -1,5 +1,6 @@
 import type {
   EdoDiagnosticsPayload,
+  EdoOnlineIdsPayload,
   EnrichRowsPayload,
   EpdListItem,
   InitPayload,
@@ -111,7 +112,38 @@ export function parseEdoDiagnosticsPayload(value: unknown): { data: EdoDiagnosti
       kpp: payload.kpp ?? "",
       orgEdoId: payload.orgEdoId ?? "",
       currentEdoId: payload.currentEdoId ?? "",
+      onlineLoaded: payload.onlineLoaded === true,
+      loadWarning: payload.loadWarning ?? "",
       items: Array.isArray(payload.items) ? payload.items : [],
+    },
+    error: "",
+  };
+}
+
+export function parseEdoOnlineIdsPayload(value: unknown): { payload: EdoOnlineIdsPayload | null; error: string } {
+  const parsed = parseJsonValue<{ error?: string; onlineItems?: EdoOnlineIdsPayload["onlineItems"] } & EdoOnlineIdsPayload | null>(
+    value,
+    null,
+  );
+  if (!parsed || typeof parsed !== "object") {
+    return { payload: null, error: "Пустой ответ онлайн-ID" };
+  }
+  if (parsed.error) {
+    return {
+      payload: {
+        onlineItems: [],
+        onlineLoaded: false,
+        loadWarning: parsed.error,
+        error: parsed.error,
+      },
+      error: parsed.error,
+    };
+  }
+  return {
+    payload: {
+      onlineItems: Array.isArray(parsed.onlineItems) ? parsed.onlineItems : [],
+      onlineLoaded: parsed.onlineLoaded === true,
+      loadWarning: parsed.loadWarning ?? "",
     },
     error: "",
   };

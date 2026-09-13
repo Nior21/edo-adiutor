@@ -1257,7 +1257,7 @@ body.modal-open {
 }
 
 .edo-diag-card {
-  max-width: min(920px, 96vw);
+  max-width: min(1040px, 96vw);
   max-height: min(88vh, 720px);
   display: flex;
   flex-direction: column;
@@ -1316,10 +1316,82 @@ body.modal-open {
   background: #f0fdf4;
 }
 
+.edo-diag-table tr.is-online-only {
+  background: #fff;
+}
+
+.edo-diag-warning {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.84rem;
+}
+
+.edo-diag-online-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 0.86rem;
+}
+
 .edo-diag-id-cell {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.edo-diag-id-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.edo-diag-id-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.edo-diag-id-copy.copyable {
+  display: block;
+  max-width: 100%;
+}
+
+.edo-diag-id-copy .copyable-value {
+  font-size: 0.82rem;
+  word-break: break-all;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.edo-diag-id-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  padding-top: 1px;
+}
+
+.edo-diag-operator {
+  font-size: 0.84rem;
+  vertical-align: top;
+}
+
+.edo-diag-operator-name {
+  display: block;
+  line-height: 1.35;
+}
+
+.edo-diag-operator-code {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 2px;
 }
 
 .edo-diag-id {

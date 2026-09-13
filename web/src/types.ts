@@ -93,11 +93,15 @@ export type EdoDiagnosticInvitation = {
 export type EdoDiagnosticItem = {
   edoId: string;
   title: string;
-  source: "available" | "settings" | "invitation";
+  operatorCode?: string;
+  operatorLabel?: string;
+  source: "online" | "local" | "available" | "settings" | "invitation";
   inSendSettings: boolean;
   isCurrentInDoc: boolean;
   hasAccepted: boolean;
   hasArchived: boolean;
+  hasLocalData?: boolean;
+  settingsChangedAt?: string;
   invitations: EdoDiagnosticInvitation[];
 };
 
@@ -107,7 +111,16 @@ export type EdoDiagnosticsPayload = {
   kpp: string;
   orgEdoId: string;
   currentEdoId: string;
+  onlineLoaded?: boolean;
+  loadWarning?: string;
   items: EdoDiagnosticItem[];
+};
+
+export type EdoOnlineIdsPayload = {
+  onlineItems: Array<{ edoId: string; title: string }>;
+  onlineLoaded: boolean;
+  loadWarning: string;
+  error?: string;
 };
 
 export type BridgeAction =
@@ -122,6 +135,8 @@ export type BridgeAction =
   | { action: "openEdoSettings"; edoId: string; orgRef: string; entityRef?: string }
   | { action: "openEdoSendSettings"; entityRef: string }
   | { action: "getEdoDiagnostics"; orgRef: string; entityRef: string; edoId?: string }
+  | { action: "getEdoDiagnosticsLocal"; orgRef: string; entityRef: string; edoId?: string }
+  | { action: "getEdoDiagnosticsOnline"; orgRef: string; entityRef: string; edoId?: string }
   | { action: "openEdoTransportSettings"; orgRef: string; entityRef: string; edoId?: string }
   | { action: "saveComment"; ref: string; docType: string; comment: string };
 

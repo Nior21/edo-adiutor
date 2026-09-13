@@ -5,6 +5,7 @@ type EdoBridgeCore = {
   setListPage: (json: unknown) => void;
   setEnrichRows: (json: unknown) => void;
   setEdoDiagnostics: (json: unknown) => void;
+  setEdoOnlineIds: (json: unknown) => void;
   setStatus: (message: string) => void;
   setError: (message: string) => void;
 };
@@ -17,6 +18,7 @@ declare global {
     edoSetListPage: (json: unknown) => void;
     edoSetEnrichRows: (json: unknown) => void;
     edoSetEdoDiagnostics: (json: unknown) => void;
+    edoSetEdoOnlineIds: (json: unknown) => void;
     edoSetStatus: (text: string) => void;
     edoSetError: (text: string) => void;
     __edoBridgeRegister: (core: EdoBridgeCore | undefined) => void;
@@ -54,6 +56,7 @@ window.edoSetListMeta = (json) => enqueue("setListMeta", json);
 window.edoSetListPage = (json) => enqueue("setListPage", json);
 window.edoSetEnrichRows = (json) => enqueue("setEnrichRows", json);
 window.edoSetEdoDiagnostics = (json) => enqueue("setEdoDiagnostics", json);
+window.edoSetEdoOnlineIds = (json) => enqueue("setEdoOnlineIds", json);
 window.edoSetStatus = (text) => enqueue("setStatus", text);
 window.edoSetError = (text) => enqueue("setError", text);
 

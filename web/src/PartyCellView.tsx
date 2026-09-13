@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { fetchEdoDiagnostics } from "./bridgeAsync";
+import { loadEdoDiagnosticsTwoPhase, type EdoDiagnosticsLoadPhase } from "./edoDiagnosticsLoader";
 
 import { openCatalogRef, openEdoSettings } from "./bridge";
 
@@ -102,11 +102,13 @@ export function PartyCellView({ party, organizationRef, enrichingEdo = false, on
 
   const [diagOpen, setDiagOpen] = useState(false);
 
-  const [diagLoading, setDiagLoading] = useState(false);
+  const [diagPhase, setDiagPhase] = useState<EdoDiagnosticsLoadPhase>(null);
 
   const [diagData, setDiagData] = useState<EdoDiagnosticsPayload | null>(null);
 
   const [diagError, setDiagError] = useState("");
+
+  const [diagOnlineError, setDiagOnlineError] = useState("");
 
 
 
@@ -124,29 +126,37 @@ export function PartyCellView({ party, organizationRef, enrichingEdo = false, on
 
     setDiagOpen(true);
 
-    setDiagLoading(true);
+    setDiagPhase("local");
 
     setDiagError("");
 
+    setDiagOnlineError("");
+
     setDiagData(null);
 
-    void fetchEdoDiagnostics(organizationRef, party.entityRef, party.edoId)
+    void loadEdoDiagnosticsTwoPhase(organizationRef, party.entityRef, party.edoId, (phase, data, onlineError) => {
 
-      .then((payload) => {
+      setDiagPhase(phase);
 
-        setDiagData(payload);
+      if (data) {
 
-        setDiagLoading(false);
+        setDiagData(data);
 
-      })
+      }
 
-      .catch((error: unknown) => {
+      if (onlineError) {
 
-        setDiagError(error instanceof Error ? error.message : "Ошибка загрузки диагностики");
+        setDiagOnlineError(onlineError);
 
-        setDiagLoading(false);
+      }
 
-      });
+    }).catch((error: unknown) => {
+
+      setDiagError(error instanceof Error ? error.message : "Ошибка загрузки диагностики");
+
+      setDiagPhase(null);
+
+    });
 
   }, [organizationRef, party.edoId, party.entityRef]);
 
@@ -398,9 +408,11 @@ export function PartyCellView({ party, organizationRef, enrichingEdo = false, on
 
           open={diagOpen}
 
-          loading={diagLoading}
+          loadingPhase={diagPhase}
 
           error={diagError}
+
+          onlineError={diagOnlineError}
 
           data={diagData}
 

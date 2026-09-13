@@ -115,6 +115,14 @@ export function requestEdoDiagnostics(orgRef: string, entityRef: string, edoId?:
   call1C({ action: "getEdoDiagnostics", orgRef, entityRef, edoId: edoId ?? "" });
 }
 
+export function requestEdoDiagnosticsLocal(orgRef: string, entityRef: string, edoId?: string): void {
+  call1C({ action: "getEdoDiagnosticsLocal", orgRef, entityRef, edoId: edoId ?? "" });
+}
+
+export function requestEdoDiagnosticsOnline(orgRef: string, entityRef: string): void {
+  call1C({ action: "getEdoDiagnosticsOnline", orgRef, entityRef, edoId: "" });
+}
+
 /** Форма НастройкаОбменаСКонтрагентом — выбор активного ID в настройках отправки. */
 export function openEdoTransportSettings(orgRef: string, entityRef: string, edoId?: string): void {
   call1C({ action: "openEdoTransportSettings", orgRef, entityRef, edoId: edoId ?? "" });

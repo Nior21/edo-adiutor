@@ -1,14 +1,23 @@
 import {
   call1C,
-  requestEdoDiagnostics,
+  requestEdoDiagnosticsLocal,
+  requestEdoDiagnosticsOnline,
   requestEnrichRows,
   requestListMeta,
   requestListPage,
   yieldToBrowser,
 } from "./bridge";
-import type { EdoDiagnosticsPayload, EnrichRowsPayload, ListMetaPayload, ListPagePayload } from "./types";
+import type {
+  EdoDiagnosticsPayload,
+  EdoOnlineIdsPayload,
+  EnrichRowsPayload,
+  ListMetaPayload,
+  ListPagePayload,
+} from "./types";
 
 const BRIDGE_TIMEOUT_MS = 120_000;
+const DIAGNOSTICS_LOCAL_TIMEOUT_MS = 60_000;
+const DIAGNOSTICS_ONLINE_TIMEOUT_MS = 600_000;
 
 type Pending<T> = {
   resolve: (value: T) => void;
@@ -16,12 +25,11 @@ type Pending<T> = {
   timer: number;
 };
 
-let pendingMeta: Pending<ListMetaPayload> | null = null;
-let pendingPage: Pending<ListPagePayload> | null = null;
-let pendingEnrich: Pending<EnrichRowsPayload> | null = null;
-let pendingDiagnostics: Pending<EdoDiagnosticsPayload> | null = null;
-
-function armPending<T>(slot: { current: Pending<T> | null }, label: string): Promise<T> {
+function armPendingWithTimeout<T>(
+  slot: { current: Pending<T> | null },
+  label: string,
+  timeoutMs: number,
+): Promise<T> {
   if (slot.current) {
     window.clearTimeout(slot.current.timer);
     slot.current.reject(new Error(`Предыдущий запрос ${label} отменён`));
@@ -33,7 +41,7 @@ function armPending<T>(slot: { current: Pending<T> | null }, label: string): Pro
         slot.current = null;
       }
       reject(new Error(`Таймаут ${label}`));
-    }, BRIDGE_TIMEOUT_MS);
+    }, timeoutMs);
 
     slot.current = { resolve, reject, timer };
   });
@@ -43,6 +51,7 @@ const metaSlot = { current: null as Pending<ListMetaPayload> | null };
 const pageSlot = { current: null as Pending<ListPagePayload> | null };
 const enrichSlot = { current: null as Pending<EnrichRowsPayload> | null };
 const diagnosticsSlot = { current: null as Pending<EdoDiagnosticsPayload> | null };
+const onlineIdsSlot = { current: null as Pending<EdoOnlineIdsPayload> | null };
 
 function settle<T>(slot: { current: Pending<T> | null }, value: T): void {
   if (!slot.current) {
@@ -87,37 +96,50 @@ export const bridgeAsync = {
   rejectEdoDiagnostics(message: string): void {
     fail(diagnosticsSlot, message);
   },
+  resolveEdoOnlineIds(payload: EdoOnlineIdsPayload): void {
+    settle(onlineIdsSlot, payload);
+  },
+  rejectEdoOnlineIds(message: string): void {
+    fail(onlineIdsSlot, message);
+  },
 };
 
 export async function fetchListMeta(): Promise<ListMetaPayload> {
-  const promise = armPending(metaSlot, "getListMeta");
+  const promise = armPendingWithTimeout(metaSlot, "getListMeta", BRIDGE_TIMEOUT_MS);
   await yieldToBrowser(16);
   requestListMeta();
   return promise;
 }
 
 export async function fetchListPage(offset: number, limit: number): Promise<ListPagePayload> {
-  const promise = armPending(pageSlot, "getListPage");
+  const promise = armPendingWithTimeout(pageSlot, "getListPage", BRIDGE_TIMEOUT_MS);
   await yieldToBrowser(16);
   requestListPage(offset, limit);
   return promise;
 }
 
 export async function fetchEnrichRows(refs: string[]): Promise<EnrichRowsPayload> {
-  const promise = armPending(enrichSlot, "enrichRows");
+  const promise = armPendingWithTimeout(enrichSlot, "enrichRows", BRIDGE_TIMEOUT_MS);
   await yieldToBrowser(16);
   requestEnrichRows(refs);
   return promise;
 }
 
-export async function fetchEdoDiagnostics(
+export async function fetchEdoDiagnosticsLocal(
   orgRef: string,
   entityRef: string,
   edoId?: string,
 ): Promise<EdoDiagnosticsPayload> {
-  const promise = armPending(diagnosticsSlot, "getEdoDiagnostics");
+  const promise = armPendingWithTimeout(diagnosticsSlot, "getEdoDiagnosticsLocal", DIAGNOSTICS_LOCAL_TIMEOUT_MS);
   await yieldToBrowser(16);
-  requestEdoDiagnostics(orgRef, entityRef, edoId);
+  requestEdoDiagnosticsLocal(orgRef, entityRef, edoId);
+  return promise;
+}
+
+export async function fetchEdoDiagnosticsOnline(orgRef: string, entityRef: string): Promise<EdoOnlineIdsPayload> {
+  const promise = armPendingWithTimeout(onlineIdsSlot, "getEdoDiagnosticsOnline", DIAGNOSTICS_ONLINE_TIMEOUT_MS);
+  await yieldToBrowser(16);
+  requestEdoDiagnosticsOnline(orgRef, entityRef);
   return promise;
 }
 

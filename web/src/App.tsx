@@ -13,6 +13,7 @@ import { daysWithItems, filterItems, loadStoredDays, loadStoredQuery } from "./e
 import {
   parseDocumentPayload,
   parseEdoDiagnosticsPayload,
+  parseEdoOnlineIdsPayload,
   parseEnrichRowsPayload,
   parseInitPayload,
   parseListMetaPayload,
@@ -31,7 +32,7 @@ const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "
 const ANIM_TEST_MS = 8000;
 
 export default function App() {
-  const [version, setVersion] = useState("0.5.0");
+  const [version, setVersion] = useState("0.5.5");
   const [items, setItems] = useState<EpdListItem[]>([]);
   const [refreshActive, setRefreshActive] = useState(false);
   const [loadProgress, setLoadProgress] = useState<ListLoadProgress | null>({
@@ -209,6 +210,14 @@ export default function App() {
           bridgeAsync.resolveEdoDiagnostics(data);
         } else {
           bridgeAsync.rejectEdoDiagnostics(error || "Ошибка диагностики ЭДО");
+        }
+      },
+      setEdoOnlineIds: (json: unknown) => {
+        const { payload, error } = parseEdoOnlineIdsPayload(json);
+        if (payload) {
+          bridgeAsync.resolveEdoOnlineIds(payload);
+        } else {
+          bridgeAsync.rejectEdoOnlineIds(error || "Ошибка загрузки ID из сервиса ЭДО");
         }
       },
       setDocument: (json: unknown) => {

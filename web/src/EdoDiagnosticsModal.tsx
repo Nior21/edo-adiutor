@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { openEdoSettings, openEdoTransportSettings } from "./bridge";
 import { ExternalLinkIcon } from "./ExternalLinkIcon";
-import { formatInn, truncateEdoId } from "./format";
+import { Copyable } from "./Copyable";
+import { resolveOperatorDisplay } from "./edoOperator";
+import { formatInn } from "./format";
 import { ModalPortal } from "./ModalPortal";
+import type { EdoDiagnosticsLoadPhase } from "./edoDiagnosticsLoader";
 import type { EdoDiagnosticInvitation, EdoDiagnosticItem, EdoDiagnosticsPayload } from "./types";
 
 type EdoDiagnosticsModalProps = {
   open: boolean;
-  loading: boolean;
+  loadingPhase: EdoDiagnosticsLoadPhase;
   error: string;
+  onlineError: string;
   data: EdoDiagnosticsPayload | null;
   organizationRef: string;
   entityRef: string;
@@ -48,21 +52,38 @@ function InvitationStatusIcon({ status }: { status: string }) {
   return <span className={className}>{symbols[status] ?? "?"}</span>;
 }
 
-function summarizeItem(item: EdoDiagnosticItem): { status: string; label: string; changedAt?: string } {
+function summarizeItem(item: EdoDiagnosticItem): {
+  hasLocal: boolean;
+  status: string;
+  label: string;
+  changedAt?: string;
+} {
+  if (!item.hasLocalData) {
+    return { hasLocal: false, status: "none", label: "—" };
+  }
+
   const ours = item.invitations.filter((inv) => inv.forOurOrg);
   const list = ours.length > 0 ? ours : item.invitations;
-  if (list.length === 0) {
-    if (item.inSendSettings) {
-      return { status: "in_settings", label: "В настройках отправки" };
-    }
-    return { status: "no_invitation", label: "Нет приглашения" };
+  if (list.length > 0) {
+    const latest = list[0];
+    return {
+      hasLocal: true,
+      status: latest.status,
+      label: latest.statusLabel,
+      changedAt: latest.statusChangedAt,
+    };
   }
-  const latest = list[0];
-  return {
-    status: latest.status,
-    label: latest.statusLabel,
-    changedAt: latest.statusChangedAt,
-  };
+
+  if (item.inSendSettings) {
+    return {
+      hasLocal: true,
+      status: "in_settings",
+      label: "В настройках отправки",
+      changedAt: item.settingsChangedAt,
+    };
+  }
+
+  return { hasLocal: true, status: "unknown", label: "Есть в базе" };
 }
 
 function InvitationRow({ invitation }: { invitation: EdoDiagnosticInvitation }) {
@@ -81,8 +102,9 @@ function InvitationRow({ invitation }: { invitation: EdoDiagnosticInvitation }) 
 
 export function EdoDiagnosticsModal({
   open,
-  loading,
+  loadingPhase,
   error,
+  onlineError,
   data,
   organizationRef,
   entityRef,
@@ -139,53 +161,86 @@ export function EdoDiagnosticsModal({
         </button>
       </header>
 
-      {loading ? (
+      {loadingPhase === "local" ? (
         <div className="modal-loading">
           <span className="modal-loading-spinner" aria-hidden="true" />
-          Загрузка идентификаторов и приглашений…
+          Чтение настроек и приглашений в базе…
         </div>
       ) : null}
 
-      {!loading && error ? (
+      {loadingPhase === "online" ? (
+        <div className="edo-diag-online-banner">
+          <span className="modal-loading-spinner" aria-hidden="true" />
+          Запрос полного списка ID в сервисе ЭДО по ИНН (может занять несколько минут)…
+        </div>
+      ) : null}
+
+      {!loadingPhase && error ? (
         <p className="edo-diag-error" role="alert">
           {error}
         </p>
       ) : null}
 
-      {!loading && !error && sortedItems.length === 0 ? (
+      {loadingPhase !== "local" && !error && sortedItems.length === 0 ? (
         <p className="muted">Идентификаторы ЭДО для контрагента не найдены.</p>
       ) : null}
 
-      {!loading && !error && sortedItems.length > 0 ? (
+      {loadingPhase !== "local" && !error && sortedItems.length > 0 ? (
         <div className="edo-diag-table-wrap">
           <table className="edo-diag-table">
             <thead>
               <tr>
                 <th>ID ЭДО</th>
+                <th>Оператор</th>
                 <th>Статус</th>
                 <th>Изменён</th>
-                <th aria-label="Действия" />
               </tr>
             </thead>
             <tbody>
               {sortedItems.map((item) => {
                 const summary = summarizeItem(item);
-                const hasInvitation = item.invitations.some((inv) => inv.forOurOrg);
+                const hasInvitation = item.hasLocalData && item.invitations.some((inv) => inv.forOurOrg);
+                const operator = resolveOperatorDisplay(item);
+                const showInvitationLink = hasInvitation || item.hasAccepted;
+                const showSettingsLink = item.inSendSettings;
                 return (
                   <tr
                     key={item.edoId}
                     className={[
                       item.isCurrentInDoc ? "is-current" : "",
-                      item.inSendSettings ? "is-in-settings" : "",
+                      item.hasLocalData && item.inSendSettings ? "is-in-settings" : "",
+                      !item.hasLocalData ? "is-online-only" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
                   >
                     <td>
                       <div className="edo-diag-id-cell">
-                        <code className="edo-diag-id" title={item.edoId}>
-                          {truncateEdoId(item.edoId)}
-                        </code>
+                        <div className="edo-diag-id-row">
+                          <div className="edo-diag-id-main">
+                            <Copyable value={item.edoId} mono className="edo-diag-id-copy" inline />
+                          </div>
+                          {(showInvitationLink || showSettingsLink) && (
+                            <div className="edo-diag-id-actions">
+                              {showInvitationLink ? (
+                                <ExternalLinkIcon
+                                  onClick={() => openInvitation(item.edoId)}
+                                  title="Приглашение к обмену"
+                                />
+                              ) : null}
+                              {showSettingsLink ? (
+                                <button
+                                  type="button"
+                                  className="edo-diag-link-btn"
+                                  onClick={() => openTransport(item.edoId)}
+                                  title="Настройка обмена с этим ID"
+                                >
+                                  ⚙
+                                </button>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
                         {item.title && item.title !== item.edoId ? (
                           <span className="edo-diag-title muted">{item.title}</span>
                         ) : null}
@@ -197,7 +252,7 @@ export function EdoDiagnosticsModal({
                             <span className="edo-diag-badge edo-diag-badge-settings">настройки</span>
                           ) : null}
                         </div>
-                        {item.invitations.length > 1 ? (
+                        {item.hasLocalData && item.invitations.length > 1 ? (
                           <ul className="edo-diag-invitations">
                             {item.invitations.map((inv, index) => (
                               <InvitationRow key={`${inv.edoId}-${inv.statusChangedAt}-${index}`} invitation={inv} />
@@ -206,30 +261,24 @@ export function EdoDiagnosticsModal({
                         ) : null}
                       </div>
                     </td>
-                    <td>
-                      <div className="edo-diag-status-line">
-                        <InvitationStatusIcon status={summary.status} />
-                        <span>{summary.label}</span>
-                      </div>
+                    <td className="edo-diag-operator">
+                      <span className="edo-diag-operator-name">{operator.label}</span>
+                      {operator.code && operator.label !== operator.code ? (
+                        <span className="edo-diag-operator-code muted">{operator.code}</span>
+                      ) : null}
                     </td>
-                    <td className="edo-diag-date muted">{formatStatusDate(summary.changedAt)}</td>
-                    <td className="edo-diag-actions">
-                      {hasInvitation || item.hasAccepted ? (
-                        <ExternalLinkIcon
-                          onClick={() => openInvitation(item.edoId)}
-                          title="Приглашение к обмену"
-                        />
-                      ) : null}
-                      {item.inSendSettings ? (
-                        <button
-                          type="button"
-                          className="edo-diag-link-btn"
-                          onClick={() => openTransport(item.edoId)}
-                          title="Настройка обмена с этим ID"
-                        >
-                          ⚙
-                        </button>
-                      ) : null}
+                    <td>
+                      {summary.hasLocal ? (
+                        <div className="edo-diag-status-line">
+                          <InvitationStatusIcon status={summary.status} />
+                          <span>{summary.label}</span>
+                        </div>
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
+                    <td className="edo-diag-date muted">
+                      {summary.hasLocal ? formatStatusDate(summary.changedAt) : "—"}
                     </td>
                   </tr>
                 );
@@ -243,8 +292,11 @@ export function EdoDiagnosticsModal({
         <button type="button" className="edo-diag-primary-link" onClick={() => openTransport(data?.currentEdoId)}>
           Настройка обмена с контрагентом…
         </button>
+        {onlineError ? <p className="edo-diag-warning">{onlineError}</p> : null}
+        {data?.loadWarning ? <p className="edo-diag-warning">{data.loadWarning}</p> : null}
         <p className="edo-diag-hint muted">
-          Список ID — как в форме выбора настроек отправки (по ИНН/КПП). Статусы — все приглашения, включая архив.
+          Список ID {data?.onlineLoaded ? "загружен из сервиса ЭДО" : "взят из локальной базы"} (как при выборе
+          учётной записи). Статусы и даты — только для ID с настройкой или приглашением в этой базе, включая архив.
         </p>
       </footer>
     </ModalPortal>
