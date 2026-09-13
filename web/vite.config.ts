@@ -10,6 +10,7 @@ export default defineConfig({
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
     "process.env": "{}",
+    __EDO_UI_VERSION__: JSON.stringify(process.env.EDO_UI_VERSION ?? "0.0.0-dev"),
   },
   build: {
     target: "es2015",

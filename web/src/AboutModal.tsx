@@ -2,11 +2,12 @@ import { ModalPortal } from "./ModalPortal";
 
 type AboutModalProps = {
   open: boolean;
-  version: string;
+  uiVersion: string;
+  moduleVersion?: string;
   onClose: () => void;
 };
 
-export function AboutModal({ open, version, onClose }: AboutModalProps) {
+export function AboutModal({ open, uiVersion, moduleVersion, onClose }: AboutModalProps) {
   return (
     <ModalPortal open={open} onClose={onClose} cardClassName="about-card" ariaLabelledBy="about-title">
       <header className="modal-header">
@@ -26,7 +27,13 @@ export function AboutModal({ open, version, onClose }: AboutModalProps) {
         </p>
         <p className="about-types muted">ЭТрН · ЭСВ · ЭЗЗ · ЭЗН · ЭПЛ · ЭДФ</p>
         <p className="about-version-line">
-          Версия интерфейса: <strong>v{version}</strong>
+          Интерфейс (React): <strong>v{uiVersion}</strong>
+          {moduleVersion && moduleVersion !== uiVersion ? (
+            <>
+              {" "}
+              · модуль EPF: <strong>v{moduleVersion}</strong>
+            </>
+          ) : null}
         </p>
         <p className="about-credit">
           Авторская разработка: <strong>Шолохов Иван</strong>

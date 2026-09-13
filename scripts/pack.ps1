@@ -2,6 +2,15 @@
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$ObjectModule = Join-Path $ProjectRoot "src\ExternalDataProcessors\ПомощникДляЭДО\ObjectModule.bsl"
+$UiVersion = "0.0.0-dev"
+if (Test-Path -LiteralPath $ObjectModule) {
+    $omText = Get-Content -LiteralPath $ObjectModule -Raw -Encoding UTF8
+    if ($omText -match '(?s)Функция\s+ВерсияПриложения\(\)[\s\S]*?Возврат\s+"(\d+\.\d+\.\d+)"') {
+        $UiVersion = $Matches[1]
+    }
+}
+Write-Host "==> UI bundle version (from ObjectModule): $UiVersion"
 $WebDir = Join-Path $ProjectRoot "web"
 $DistDir = Join-Path $WebDir "dist"
 $ShellPath = Join-Path $WebDir "shell.html"
@@ -22,6 +31,7 @@ npm install
 if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
 
 Write-Host "==> npm run build (IIFE inline)"
+$env:EDO_UI_VERSION = $UiVersion
 npm run build
 if ($LASTEXITCODE -ne 0) { throw "npm run build failed" }
 Pop-Location

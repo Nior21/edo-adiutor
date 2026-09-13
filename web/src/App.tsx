@@ -25,6 +25,8 @@ import { VersionPickerModal } from "./VersionPickerModal";
 import { isLoadActive } from "./loadProgressUi";
 import { cancelListLoad, loadRegistryPaginated, type ListLoadProgress } from "./listLoader";
 import { useToast } from "./useToast";
+import { UI_BUILD_VERSION } from "./buildVersion";
+import { compareSemver } from "./semverCompare";
 import type { EpdListItem, UpdateInfoPayload, VersionCatalogItem } from "./types";
 
 const TABLE_HINT =
@@ -33,7 +35,7 @@ const TABLE_HINT =
 const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
 
 export default function App() {
-  const [version, setVersion] = useState("0.8.5");
+  const [moduleVersion, setModuleVersion] = useState("");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfoPayload | null>(null);
   const [updateApplying, setUpdateApplying] = useState(false);
   const [updateChecking, setUpdateChecking] = useState(true);
@@ -59,6 +61,29 @@ export default function App() {
   const listBusy = isLoadActive(loadProgress) || refreshActive;
   const enrichingRef = loadProgress?.enrichingRef ?? null;
   const superseded = updateInfo?.uiMode === "superseded" || updateInfo?.phase === "superseded";
+
+  const versionMismatch = useMemo(() => {
+    if (!moduleVersion) {
+      return false;
+    }
+    return compareSemver(moduleVersion, UI_BUILD_VERSION) !== 0;
+  }, [moduleVersion]);
+
+  const effectiveUpdate = useMemo(() => {
+    if (!updateInfo || superseded) {
+      return { available: false, target: "" };
+    }
+    let target =
+      updateInfo.targetVersion || updateInfo.remoteLatestVersion || updateInfo.latestVersion || "";
+    const uiBehindModule =
+      Boolean(moduleVersion) && compareSemver(UI_BUILD_VERSION, moduleVersion) < 0;
+    if (!target && uiBehindModule) {
+      target = moduleVersion;
+    }
+    const uiBehindTarget = Boolean(target) && compareSemver(UI_BUILD_VERSION, target) < 0;
+    const available = Boolean(updateInfo.updateAvailable) || uiBehindTarget || uiBehindModule;
+    return { available, target };
+  }, [moduleVersion, superseded, updateInfo]);
 
   const daysWithData = useMemo(() => daysWithItems(items), [items]);
 
@@ -89,22 +114,23 @@ export default function App() {
       return updateInfo.versionCatalog;
     }
     const fallback: VersionCatalogItem[] = [];
-    if (version) {
+    const running = moduleVersion || UI_BUILD_VERSION;
+    if (running) {
       fallback.push({
-        version,
+        version: running,
         path: updateInfo?.epfPath,
         kind: "current",
         installed: true,
       });
     }
     for (const rel of updateInfo?.localReleases ?? []) {
-      if (rel.version === version) {
+      if (rel.version === running) {
         continue;
       }
       fallback.push({ version: rel.version, path: rel.path, kind: "local", installed: true });
     }
     return fallback;
-  }, [updateInfo, version]);
+  }, [moduleVersion, updateInfo]);
 
   const beginDataLoadIfNeeded = useCallback(() => {
     if (dataLoadStarted.current || superseded) {
@@ -122,20 +148,20 @@ export default function App() {
       enrichingRef: null,
     });
 
-    void loadRegistryPaginated({
-      onVersion: setVersion,
-      onProgress: (progress) => {
-        setLoadProgress(progress);
-        if (progress.phase === "done") {
-          setRefreshActive(false);
-          if (progress.loaded > 0) {
-            showToast(`Загружено документов: ${progress.loaded}`);
+      void loadRegistryPaginated({
+        onVersion: setModuleVersion,
+        onProgress: (progress) => {
+          setLoadProgress(progress);
+          if (progress.phase === "done") {
+            setRefreshActive(false);
+            if (progress.loaded > 0) {
+              showToast(`Загружено документов: ${progress.loaded}`);
+            }
           }
-        }
-      },
-      onAppendPage: (pageItems) => {
-        setItems((prev) => [...prev, ...pageItems]);
-      },
+        },
+        onAppendPage: (pageItems) => {
+          setItems((prev) => [...prev, ...pageItems]);
+        },
       onEnrichBatch: (updates) => {
         setItems((prev) =>
           prev.map((item) => {
@@ -167,8 +193,9 @@ export default function App() {
         return;
       }
       setUpdateChecking(false);
-      if (payload.currentVersion) {
-        setVersion(payload.currentVersion);
+      const epfVer = payload.currentVersion ?? "";
+      if (epfVer) {
+        setModuleVersion(epfVer);
       }
       if (pendingVersionPicker.current) {
         pendingVersionPicker.current = false;
@@ -177,11 +204,32 @@ export default function App() {
       if (dataLoadStarted.current || updatePromptShown.current) {
         return;
       }
-      if (payload.updateAvailable && payload.targetVersion && (payload.epfPath || payload.epfUrl)) {
+      let target =
+        payload.targetVersion || payload.remoteLatestVersion || payload.latestVersion || "";
+      const uiBehindModule = Boolean(epfVer) && compareSemver(UI_BUILD_VERSION, epfVer) < 0;
+      if (!target && uiBehindModule) {
+        target = epfVer;
+      }
+      const uiBehindTarget = Boolean(target) && compareSemver(UI_BUILD_VERSION, target) < 0;
+      const shouldOfferUpdate =
+        (payload.updateAvailable || uiBehindTarget || uiBehindModule) &&
+        Boolean(target) &&
+        (payload.epfPath || payload.epfUrl);
+      if (shouldOfferUpdate) {
         updatePromptShown.current = true;
         setUpdateOfferOpen(true);
-        showToast(`Доступна новая версия v${payload.targetVersion}`, "info");
+        const label = uiBehindModule
+          ? `Интерфейс v${UI_BUILD_VERSION}, в EPF v${epfVer || "?"} — обновление до v${target}`
+          : `Доступна новая версия v${target}`;
+        showToast(label, "info", 12000);
         return;
+      }
+      if (uiBehindModule) {
+        showToast(
+          `Модуль EPF v${epfVer}, интерфейс v${UI_BUILD_VERSION}. Выполните F7 и выгрузите .epf заново.`,
+          "error",
+          15000,
+        );
       }
       if (payload.error) {
         showToast(payload.error, "error", 15000);
@@ -207,7 +255,7 @@ export default function App() {
         });
         setRefreshActive(true);
         void loadRegistryPaginated({
-          onVersion: setVersion,
+          onVersion: setModuleVersion,
           onProgress: (progress) => {
             setLoadProgress(progress);
             if (progress.phase === "done") {
@@ -287,7 +335,7 @@ export default function App() {
     window.__edoBridgeRegister({
       init: (json: unknown) => {
         const payload = parseInitPayload(json);
-        setVersion(payload.version);
+        setModuleVersion(payload.version);
         setItems(payload.items ?? []);
         setRefreshActive(false);
         setLoadProgress(null);
@@ -351,7 +399,7 @@ export default function App() {
           setUpdateApplying(false);
           setUpdateChecking(false);
           if (payload.success && payload.latestVersion) {
-            setVersion(payload.latestVersion);
+            setModuleVersion(payload.latestVersion);
           }
           if (payload.message) {
             showToast(payload.message, payload.success ? "info" : "error");
@@ -361,7 +409,7 @@ export default function App() {
         } else {
           setUpdateApplying(false);
           if (payload.currentVersion) {
-            setVersion(payload.currentVersion);
+            setModuleVersion(payload.currentVersion);
           }
         }
       },
@@ -539,11 +587,13 @@ export default function App() {
       <StatusBar
         toast={toast}
         hint={TABLE_HINT}
-        version={version}
+        uiVersion={UI_BUILD_VERSION}
+        moduleVersion={moduleVersion}
+        versionMismatch={versionMismatch}
         loadProgress={loadProgress}
         updateChecking={updateChecking}
-        updateAvailable={Boolean(updateInfo?.updateAvailable && !superseded)}
-        updateTargetVersion={updateInfo?.targetVersion}
+        updateAvailable={effectiveUpdate.available && !superseded}
+        updateTargetVersion={effectiveUpdate.target}
         updateError={updateInfo?.error}
         onAboutOpen={() => setAboutOpen(true)}
         onVersionClick={superseded ? undefined : handleVersionBadgeClick}
@@ -559,12 +609,17 @@ export default function App() {
         onCopied={handleCopied}
       />
 
-      <AboutModal open={aboutOpen} version={version} onClose={() => setAboutOpen(false)} />
+      <AboutModal
+        open={aboutOpen}
+        uiVersion={UI_BUILD_VERSION}
+        moduleVersion={moduleVersion}
+        onClose={() => setAboutOpen(false)}
+      />
 
       <UpdateOfferModal
         open={updateOfferOpen && !superseded}
-        currentVersion={version}
-        targetVersion={updateInfo?.targetVersion ?? ""}
+        currentVersion={UI_BUILD_VERSION}
+        targetVersion={effectiveUpdate.target || updateInfo?.targetVersion || ""}
         notes={updateInfo?.notes}
         applying={updateApplying}
         onUpdate={handleApplyUpdate}
@@ -573,7 +628,7 @@ export default function App() {
 
       <VersionPickerModal
         open={versionPickerOpen && !superseded}
-        currentVersion={version}
+        currentVersion={UI_BUILD_VERSION}
         catalog={versionCatalog}
         checking={updateChecking}
         onSelect={handleCatalogSelect}

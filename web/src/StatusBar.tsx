@@ -5,7 +5,9 @@ import type { Toast } from "./useToast";
 type StatusBarProps = {
   toast: Toast | null;
   hint: string;
-  version: string;
+  uiVersion: string;
+  moduleVersion?: string;
+  versionMismatch?: boolean;
   loadProgress: ListLoadProgress | null;
   updateChecking: boolean;
   updateAvailable: boolean;
@@ -18,7 +20,9 @@ type StatusBarProps = {
 export function StatusBar({
   toast,
   hint,
-  version,
+  uiVersion,
+  moduleVersion,
+  versionMismatch,
   loadProgress,
   updateChecking,
   updateAvailable,
@@ -43,6 +47,9 @@ export function StatusBar({
   } else if (toast) {
     message = toast.message;
     messageClass = isError ? "status-bar-error" : "status-bar-info";
+  } else if (versionMismatch && moduleVersion) {
+    message = `Интерфейс v${uiVersion}, модуль EPF v${moduleVersion} — нужна пересборка (F7) или обновление`;
+    messageClass = "status-bar-error";
   } else if (updateAvailable && updateTargetVersion) {
     message = `Доступна версия v${updateTargetVersion} — нажмите на бейдж справа для обновления`;
     messageClass = "status-bar-info";
@@ -53,20 +60,31 @@ export function StatusBar({
 
   const badgeTitle = updateAvailable
     ? `Доступен новый релиз v${updateTargetVersion ?? "?"}. Нажмите для проверки и установки.`
-    : updateChecking
-      ? "Проверяем обновления…"
-      : `Версия v${version}. Нажмите для списка версий на диске.`;
+    : versionMismatch && moduleVersion
+      ? `Интерфейс v${uiVersion}, в файле EPF заявлено v${moduleVersion}. Обновите или пересоберите EPF (F7).`
+      : updateChecking
+        ? "Проверяем обновления…"
+        : `Интерфейс v${uiVersion}${moduleVersion && moduleVersion !== uiVersion ? ` · EPF v${moduleVersion}` : ""}. Нажмите для списка версий.`;
 
   const badgeLabel = updateAvailable ? (
     <>
       <span className="status-version-shake" aria-hidden="true">
         🔄
       </span>{" "}
-      v{version}
+      UI v{uiVersion}
     </>
   ) : (
-    <>v{version}</>
+    <>UI v{uiVersion}</>
   );
+
+  const badgeClass = [
+    "status-version-badge",
+    onVersionClick ? "status-version-btn" : "",
+    updateAvailable ? "status-version-badge-update" : "",
+    versionMismatch ? "status-version-badge-mismatch" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <footer
@@ -88,19 +106,11 @@ export function StatusBar({
 
       <div className="status-bar-tools">
         {onVersionClick ? (
-          <button
-            type="button"
-            className={`status-version-badge status-version-btn${updateAvailable ? " status-version-badge-update" : ""}`}
-            title={badgeTitle}
-            onClick={onVersionClick}
-          >
+          <button type="button" className={badgeClass} title={badgeTitle} onClick={onVersionClick}>
             {badgeLabel}
           </button>
         ) : (
-          <span
-            className={`status-version-badge${updateAvailable ? " status-version-badge-update" : ""}`}
-            title={badgeTitle}
-          >
+          <span className={badgeClass} title={badgeTitle}>
             {badgeLabel}
           </span>
         )}

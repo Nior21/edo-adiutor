@@ -994,6 +994,12 @@ body.modal-open {
   white-space: nowrap;
 }
 
+.status-version-badge-mismatch {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
 .status-version-badge-update {
   color: #166534;
   border-color: #86efac;
