@@ -1,22 +1,18 @@
 import { ModalPortal } from "./ModalPortal";
-import type { LocalReleaseInfo } from "./types";
+import type { VersionCatalogItem } from "./types";
 
 type VersionPickerModalProps = {
   open: boolean;
   currentVersion: string;
-  releases: LocalReleaseInfo[];
-  onSelect: (version: string) => void;
+  catalog: VersionCatalogItem[];
+  checking: boolean;
+  onSelect: (item: VersionCatalogItem) => void;
+  onRefresh: () => void;
   onClose: () => void;
 };
 
-export function VersionPickerModal({
-  open,
-  currentVersion,
-  releases,
-  onSelect,
-  onClose,
-}: VersionPickerModalProps) {
-  const sorted = [...releases].sort((a, b) => {
+function sortCatalog(items: VersionCatalogItem[]): VersionCatalogItem[] {
+  return [...items].sort((a, b) => {
     const pa = a.version.split(".").map((n) => parseInt(n, 10) || 0);
     const pb = b.version.split(".").map((n) => parseInt(n, 10) || 0);
     for (let i = 0; i < 3; i++) {
@@ -27,38 +23,67 @@ export function VersionPickerModal({
     }
     return 0;
   });
+}
+
+function itemLabel(item: VersionCatalogItem): string {
+  if (item.kind === "remote" && !item.installed) {
+    return "скачать с GitHub";
+  }
+  if (item.kind === "current") {
+    return "сейчас";
+  }
+  return "открыть";
+}
+
+export function VersionPickerModal({
+  open,
+  currentVersion,
+  catalog,
+  checking,
+  onSelect,
+  onRefresh,
+  onClose,
+}: VersionPickerModalProps) {
+  const sorted = sortCatalog(catalog);
 
   return (
     <ModalPortal open={open} onClose={onClose} cardClassName="version-picker-card" ariaLabelledBy="version-picker-title">
       <header className="modal-header">
         <div>
-          <p className="modal-kicker">Версии на диске</p>
-          <h2 id="version-picker-title">Переключить обработку</h2>
+          <p className="modal-kicker">Версии обработки</p>
+          <h2 id="version-picker-title">Установленные и доступные</h2>
         </div>
         <button type="button" className="modal-close" onClick={onClose} aria-label="Закрыть">
           ×
         </button>
       </header>
       <p className="muted version-picker-hint">
-        Выбранная версия копируется в якорный <code>bin\…epf</code> (история остаётся в <code>releases</code>), затем
-        откроется новое окно. Текущее v{currentVersion} можно закрыть.
+        Текущая сессия: v{currentVersion}. Локальные копии — в <code>releases</code> рядом с файлом .epf; якорный файл
+        обновляется при переключении.
       </p>
+      <div className="version-picker-toolbar">
+        <button type="button" className="button-ghost" disabled={checking} onClick={onRefresh}>
+          {checking ? "Проверка…" : "Проверить обновления"}
+        </button>
+      </div>
       {sorted.length === 0 ? (
-        <p className="muted">Локальных релизов нет — укажите файл .epf и проверьте обновления.</p>
+        <p className="muted">Пока только текущая версия — нажмите «Проверить обновления».</p>
       ) : (
         <ul className="version-picker-list">
-          {sorted.map((rel) => {
-            const isCurrent = rel.version === currentVersion;
+          {sorted.map((item) => {
+            const isCurrent = item.version === currentVersion && item.kind !== "remote";
+            const remotePending = item.kind === "remote" && !item.installed;
+            const disabled = isCurrent && !remotePending;
             return (
-              <li key={rel.version}>
+              <li key={`${item.version}-${item.kind}`}>
                 <button
                   type="button"
-                  className={`version-picker-item ${isCurrent ? "version-picker-item-current" : ""}`}
-                  disabled={isCurrent}
-                  onClick={() => onSelect(rel.version)}
+                  className={`version-picker-item ${isCurrent ? "version-picker-item-current" : ""} ${remotePending ? "version-picker-item-remote" : ""}`}
+                  disabled={disabled}
+                  onClick={() => onSelect(item)}
                 >
-                  <span className="version-picker-ver">v{rel.version}</span>
-                  {isCurrent ? <span className="muted">сейчас</span> : <span className="muted">открыть</span>}
+                  <span className="version-picker-ver">v{item.version}</span>
+                  <span className="muted">{itemLabel(item)}</span>
                 </button>
               </li>
             );

@@ -128,6 +128,14 @@ export type LocalReleaseInfo = {
   path?: string;
 };
 
+export type VersionCatalogItem = {
+  version: string;
+  path?: string;
+  kind: "current" | "local" | "remote";
+  installed: boolean;
+  epfUrl?: string;
+};
+
 export type UpdateInfoPayload = {
   phase: "check" | "apply" | "superseded";
   uiMode?: "normal" | "superseded";
@@ -138,6 +146,7 @@ export type UpdateInfoPayload = {
   localLatestVersion?: string;
   localHasTarget?: boolean;
   localReleases?: LocalReleaseInfo[];
+  versionCatalog?: VersionCatalogItem[];
   updateAvailable?: boolean;
   autoSwitchRecommended?: boolean;
   manifestConfigured?: boolean;
@@ -158,7 +167,7 @@ export type BridgeAction =
   | { action: "checkUpdate" }
   | { action: "pickEpfPath" }
   | { action: "applyUpdate"; targetPath?: string; releaseVer?: string; epfUrl?: string }
-  | { action: "openRelease"; releaseVer: string }
+  | { action: "openRelease"; releaseVer: string; epfUrl?: string }
   | { action: "getList" }
   | { action: "getListMeta" }
   | { action: "getListPage"; offset: string; limit: string }

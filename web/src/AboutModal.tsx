@@ -1,26 +1,12 @@
 import { ModalPortal } from "./ModalPortal";
 
-import type { UpdateInfoPayload } from "./types";
-
 type AboutModalProps = {
   open: boolean;
   version: string;
-  updateInfo: UpdateInfoPayload | null;
-  updateApplying: boolean;
-  onRefreshUpdateCheck: () => void;
-  onApplyUpdate: (targetPath?: string) => void;
   onClose: () => void;
 };
 
-export function AboutModal({
-  open,
-  version,
-  updateInfo,
-  updateApplying,
-  onRefreshUpdateCheck,
-  onApplyUpdate,
-  onClose,
-}: AboutModalProps) {
+export function AboutModal({ open, version, onClose }: AboutModalProps) {
   return (
     <ModalPortal open={open} onClose={onClose} cardClassName="about-card" ariaLabelledBy="about-title">
       <header className="modal-header">
@@ -35,60 +21,16 @@ export function AboutModal({
 
       <section className="about-product">
         <p>
-          Внешняя обработка для просмотра и аудита электронных перевозочных документов (ЭПД) в 1С: типовой
-          реестр, стороны сделки, обмен ЭДО, карточка документа и комментарии.
+          Внешняя обработка для просмотра и аудита электронных перевозочных документов (ЭПД) в 1С: реестр, стороны
+          сделки, обмен ЭДО, карточка документа и комментарии.
         </p>
         <p className="about-types muted">ЭТрН · ЭСВ · ЭЗЗ · ЭЗН · ЭПЛ · ЭДФ</p>
+        <p className="about-version-line">
+          Версия интерфейса: <strong>v{version}</strong>
+        </p>
         <p className="about-credit">
           Авторская разработка: <strong>Шолохов Иван</strong>
         </p>
-      </section>
-
-      <section className="about-section about-license">
-        <h3 className="about-section-title">Лицензия и обновления</h3>
-        <dl className="about-dl">
-          <dt>Текущая версия</dt>
-          <dd>v{version}</dd>
-          <dt>Обновления</dt>
-          <dd>
-            {!updateInfo?.manifestConfigured ? (
-              <span className="muted">
-                Для прода — URL в ObjectModule; для разработки — update-manifest.json рядом с .epf в bin
-              </span>
-            ) : updateInfo.error ? (
-              <span className="about-update-error">{updateInfo.error}</span>
-            ) : updateInfo.updateAvailable ? (
-              <span>Доступна v{updateInfo.latestVersion}</span>
-            ) : (
-              <span className="muted">Актуальная версия</span>
-            )}
-          </dd>
-          {updateInfo?.epfPath ? (
-            <>
-              <dt>Файл .epf</dt>
-              <dd className="about-epf-path">{updateInfo.epfPath}</dd>
-            </>
-          ) : null}
-          <dt>Лицензия</dt>
-          <dd className="muted">Не активирована</dd>
-        </dl>
-        {updateInfo?.manifestConfigured ? (
-          <div className="about-update-actions">
-            {updateInfo.updateAvailable ? (
-              <button
-                type="button"
-                className="button-ghost update-btn-primary"
-                disabled={updateApplying}
-                onClick={() => onApplyUpdate(updateInfo.epfPath)}
-              >
-                {updateApplying ? "Подготовка…" : "Скачать / открыть новую версию"}
-              </button>
-            ) : null}
-            <button type="button" className="button-ghost" onClick={onRefreshUpdateCheck}>
-              Проверить обновления
-            </button>
-          </div>
-        ) : null}
       </section>
 
       <section className="about-author">

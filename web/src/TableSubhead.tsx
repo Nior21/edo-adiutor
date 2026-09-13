@@ -14,8 +14,6 @@ type TableSubheadProps = {
   onQueryChange: (value: string) => void;
   onDaysChange: (days: Set<string>) => void;
   onRefresh: () => void;
-  onAnimTest: () => void;
-  animTestActive: boolean;
 };
 
 export function TableSubhead({
@@ -28,8 +26,6 @@ export function TableSubhead({
   onQueryChange,
   onDaysChange,
   onRefresh,
-  onAnimTest,
-  animTestActive,
 }: TableSubheadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const showRefreshBusy = refreshActive || listLoading;
@@ -76,14 +72,6 @@ export function TableSubhead({
       </span>
 
       <div className="subhead-actions">
-        <button
-          type="button"
-          className={`button-ghost button-anim-test${animTestActive ? " is-active" : ""}`}
-          onClick={onAnimTest}
-          title="Показать тестовые анимации загрузки на 8 секунд"
-        >
-          Тест аним. 8с
-        </button>
         <button
           type="button"
           className={`button-ghost button-refresh${showRefreshBusy ? " is-busy" : ""}`}

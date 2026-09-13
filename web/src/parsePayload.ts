@@ -178,6 +178,27 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
         .filter((row): row is NonNullable<typeof row> => row !== null)
     : [];
 
+  const versionCatalog = Array.isArray(parsed.versionCatalog)
+    ? parsed.versionCatalog
+        .map((row) => {
+          if (!row || typeof row !== "object") {
+            return null;
+          }
+          const version = "version" in row && typeof row.version === "string" ? row.version : "";
+          if (!version) {
+            return null;
+          }
+          const path = "path" in row && typeof row.path === "string" ? row.path : "";
+          const kindRaw = "kind" in row && typeof row.kind === "string" ? row.kind : "local";
+          const kind =
+            kindRaw === "current" || kindRaw === "remote" || kindRaw === "local" ? kindRaw : ("local" as const);
+          const installed = "installed" in row ? row.installed === true : kind !== "remote";
+          const epfUrl = "epfUrl" in row && typeof row.epfUrl === "string" ? row.epfUrl : "";
+          return { version, path, kind, installed, epfUrl };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null)
+    : [];
+
   return {
     phase,
     uiMode,
@@ -188,6 +209,7 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
     localLatestVersion: parsed.localLatestVersion ?? "",
     localHasTarget: parsed.localHasTarget === true,
     localReleases,
+    versionCatalog,
     updateAvailable: parsed.updateAvailable === true,
     autoSwitchRecommended: parsed.autoSwitchRecommended === true,
     manifestConfigured: parsed.manifestConfigured === true,

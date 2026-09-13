@@ -152,8 +152,8 @@ export function requestApplyUpdate(targetPath?: string, releaseVer?: string, epf
   });
 }
 
-export function requestOpenRelease(releaseVer: string): void {
-  call1C({ action: "openRelease", releaseVer });
+export function requestOpenRelease(releaseVer: string, epfUrl?: string): void {
+  call1C({ action: "openRelease", releaseVer, epfUrl: epfUrl ?? "" });
 }
 
 /** Форма НастройкаОбменаСКонтрагентом — выбор активного ID в настройках отправки. */
