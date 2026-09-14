@@ -143,6 +143,16 @@ export function requestPickEpfPath(): void {
   call1C({ action: "pickEpfPath" });
 }
 
+/** Диалог выбора .epf и открытие в отдельном окне 1С (тонкий клиент). */
+export function requestPickAndOpenEpf(): void {
+  call1C({ action: "pickAndOpenEpf" });
+}
+
+/** Повторно открыть скачанный релиз (путь из launchedPath или releases). */
+export function requestOpenLaunchEpf(targetPath?: string): void {
+  call1C({ action: "openLaunchEpf", targetPath: targetPath ?? "" });
+}
+
 export function requestApplyUpdate(targetPath?: string, releaseVer?: string, epfUrl?: string): void {
   call1C({
     action: "applyUpdate",

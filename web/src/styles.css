@@ -1734,6 +1734,13 @@ body.modal-open {
   font-size: 0.85rem;
 }
 
+.superseded-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .status-version-btn {
   border: none;
   cursor: pointer;

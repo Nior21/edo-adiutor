@@ -166,6 +166,8 @@ export type BridgeAction =
   | { action: "ready" }
   | { action: "checkUpdate" }
   | { action: "pickEpfPath" }
+  | { action: "pickAndOpenEpf" }
+  | { action: "openLaunchEpf"; targetPath?: string }
   | { action: "applyUpdate"; targetPath?: string; releaseVer?: string; epfUrl?: string }
   | { action: "openRelease"; releaseVer: string; epfUrl?: string }
   | { action: "getList" }

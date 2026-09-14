@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { notifyReady, requestApplyUpdate, requestCheckUpdate, requestDocument, requestOpenRelease } from "./bridge";
+import {
+  notifyReady,
+  requestApplyUpdate,
+  requestCheckUpdate,
+  requestDocument,
+  requestOpenLaunchEpf,
+  requestOpenRelease,
+  requestPickAndOpenEpf,
+} from "./bridge";
 import { bridgeAsync } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
@@ -520,6 +528,9 @@ export default function App() {
         <SupersededOverlay
           message={updateInfo?.message ?? "Запущена более новая версия обработки."}
           launchedVersion={updateInfo?.launchedVersion}
+          launchedPath={updateInfo?.launchedPath}
+          onOpenLaunch={() => requestOpenLaunchEpf(updateInfo?.launchedPath)}
+          onPickFile={() => requestPickAndOpenEpf()}
         />
       ) : null}
       <div className="main-card">
