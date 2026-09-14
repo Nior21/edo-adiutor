@@ -1,5 +1,6 @@
 import { openDocument } from "./bridge";
 import { Copyable } from "./Copyable";
+import { DocumentTypeIcon } from "./DocumentTypeIcon";
 import { ExternalLinkIcon } from "./ExternalLinkIcon";
 import { formatDateShort } from "./format";
 import type { FloatingMenuItem } from "./FloatingMenu";
@@ -25,41 +26,45 @@ export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
   const stepTitle = `${stepLabel} — ${stepStatus}`;
 
   return (
-    <div className="doc-cell">
-      <div className="doc-line doc-line-head">
-        <span className="doc-type-badge" title={item.docTypeName}>
-          {item.docType}
-        </span>
-        <span className="doc-num-wrap">
-          №{" "}
-          <Copyable
-            value={item.number}
-            inline
-            mono
-            className="doc-number-btn"
-            onCopied={onCopied}
+    <div className="doc-cell doc-cell-with-icon">
+      <DocumentTypeIcon
+        docType={item.docType}
+        deletionMark={item.deletionMark}
+        posted={item.posted}
+        stepDone={item.currentStepDone}
+      />
+      <div className="doc-cell-body">
+        <div className="doc-line doc-line-head">
+          <span className="doc-num-wrap">
+            №{" "}
+            <Copyable
+              value={item.number}
+              inline
+              mono
+              className="doc-number-btn"
+              onCopied={onCopied}
+              onOpenMenu={onOpenMenu}
+              extraMenuItems={[{ label: "Открыть в 1С", onSelect: handleOpenIn1C }]}
+            />
+          </span>
+          <ExternalLinkIcon
+            onClick={handleOpenIn1C}
+            title="Открыть документ в 1С"
             onOpenMenu={onOpenMenu}
-            extraMenuItems={[{ label: "Открыть в 1С", onSelect: handleOpenIn1C }]}
+            menuItems={openMenuItems}
           />
-        </span>
-        {item.deletionMark ? <span className="chip chip-danger chip-inline">Удалён</span> : null}
-        <ExternalLinkIcon
-          onClick={handleOpenIn1C}
-          title="Открыть документ в 1С"
-          onOpenMenu={onOpenMenu}
-          menuItems={openMenuItems}
-        />
-      </div>
-      <div className="doc-line doc-line-meta">
-        <span className="cell-muted">{item.date ? formatDateShort(item.date) : "—"}</span>
-      </div>
-      <div className="doc-line doc-line-step">
-        <span
-          className={`doc-step-name ${item.currentStepDone ? "step-done" : "step-pending"}`}
-          title={stepTitle}
-        >
-          {stepLabel}
-        </span>
+        </div>
+        <div className="doc-line doc-line-meta">
+          <span className="cell-muted">{item.date ? formatDateShort(item.date) : "—"}</span>
+        </div>
+        <div className="doc-line doc-line-step">
+          <span
+            className={`doc-step-name ${item.currentStepDone ? "step-done" : "step-pending"}`}
+            title={stepTitle}
+          >
+            {stepLabel}
+          </span>
+        </div>
       </div>
     </div>
   );

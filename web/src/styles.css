@@ -448,12 +448,12 @@ body.modal-open {
   box-shadow: inset 0 -1px 0 #e4e7ec;
 }
 
-/* Документ: бейдж типа + «№ 00000000001» + переход в 1С + отступы ячейки (6px). */
+/* Документ: иконка A4 + «№ 00000000001» + переход в 1С + отступы ячейки (6px). */
 .epd-table th:nth-child(1),
 .epd-table td:nth-child(1) {
-  width: 16.25rem;
-  min-width: 16.25rem;
-  max-width: 16.25rem;
+  width: 12.75rem;
+  min-width: 12.75rem;
+  max-width: 12.75rem;
   box-sizing: border-box;
 }
 
@@ -474,6 +474,63 @@ body.modal-open {
 
 .doc-cell {
   min-width: 0;
+}
+
+.doc-cell-with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.doc-cell-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.doc-type-icon {
+  position: relative;
+  flex: 0 0 2.05rem;
+  width: 2.05rem;
+  height: 2.65rem;
+  color: #344054;
+}
+
+.doc-type-icon-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.doc-type-icon-sheet {
+  fill: #fff;
+  stroke: #98a2b3;
+  stroke-width: 1.2;
+}
+
+.doc-type-icon-fold {
+  fill: #f2f4f7;
+  stroke: #98a2b3;
+  stroke-width: 1;
+}
+
+.doc-type-icon-label {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #1d4f91;
+  pointer-events: none;
+  max-width: 92%;
+  text-align: center;
+}
+
+.doc-type-icon-deleted .doc-type-icon-sheet {
+  stroke: #fda29b;
+  fill: #fff5f5;
 }
 
 .doc-line {
