@@ -1,14 +1,22 @@
 type DocumentTypeIconProps = {
   docType: string;
   deletionMark?: boolean;
-  posted?: boolean;
-  stepDone?: boolean;
+  signedSlots: boolean[];
 };
 
-/** Заготовка «лист A4» в духе значка документа 1С (крест / галочка — позже доработаем). */
-export function DocumentTypeIcon({ docType, deletionMark, posted, stepDone }: DocumentTypeIconProps) {
-  const showCheck = posted || stepDone;
+/** «Лист A4»: тип по центру, крест при удалении, галочки подписантов снизу. */
+export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: DocumentTypeIconProps) {
   const label = docType?.trim() || "…";
+  const slotCount = signedSlots.length;
+
+  const slotCentersX = (index: number): number => {
+    if (slotCount <= 1) {
+      return 20;
+    }
+    const margin = 10;
+    const span = 40 - margin * 2;
+    return margin + (span * index) / (slotCount - 1);
+  };
 
   return (
     <div
@@ -25,12 +33,35 @@ export function DocumentTypeIcon({ docType, deletionMark, posted, stepDone }: Do
             <path d="M6.5 6.5 L11.5 11.5 M11.5 6.5 L6.5 11.5" stroke="#d92d20" strokeWidth="1.4" strokeLinecap="round" />
           </g>
         ) : null}
-        {showCheck ? (
-          <g className="doc-type-icon-mark doc-type-icon-mark-ok">
-            <circle cx="33" cy="44" r="6" fill="#ecfdf3" stroke="#12b76a" strokeWidth="1" />
-            <path d="M30 44 L32 46 L36 42" stroke="#027a48" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        ) : null}
+        <g className="doc-type-icon-signatures">
+          {signedSlots.map((signed, index) => {
+            const cx = slotCentersX(index);
+            const cy = 45;
+            const r = slotCount > 2 ? 3.2 : 3.6;
+            return (
+              <g key={index} className={signed ? "doc-signature-signed" : "doc-signature-pending"}>
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  className="doc-signature-circle"
+                  fill={signed ? "#ecfdf3" : "#fff"}
+                  stroke={signed ? "#12b76a" : "#98a2b3"}
+                  strokeWidth="1"
+                />
+                {signed ? (
+                  <path
+                    d={`M${cx - 1.8} ${cy} L${cx - 0.4} ${cy + 1.6} L${cx + 2.2} ${cy - 1.4}`}
+                    stroke="#027a48"
+                    strokeWidth="1.1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : null}
+              </g>
+            );
+          })}
+        </g>
       </svg>
       <span className="doc-type-icon-label">{label}</span>
     </div>

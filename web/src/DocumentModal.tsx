@@ -390,7 +390,7 @@ export function DocumentModal({
 
             onChange={(event) => onCommentChange(event.target.value)}
 
-            placeholder="Комментарий к документу"
+            placeholder="Номер заявки оператору, статус… Служебный тег ошибки: [!] в начале строки"
 
           />
 

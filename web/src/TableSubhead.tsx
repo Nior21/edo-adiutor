@@ -61,7 +61,7 @@ export function TableSubhead({
           onQueryChange(event.target.value);
           saveStoredQuery(event.target.value);
         }}
-        placeholder="Поиск: номер, контрагент, ИНН, шаг…"
+        placeholder="Поиск: номер, заявка, комментарий, ИНН…"
         autoComplete="off"
         spellCheck={false}
         title="Ctrl+F — фокус в поиск"

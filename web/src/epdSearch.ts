@@ -1,3 +1,4 @@
+import { commentTextForDisplay } from "./commentDisplay";
 import { formatDate } from "./format";
 import type { EpdListItem, PartyCell } from "./types";
 
@@ -35,6 +36,7 @@ export function buildSearchHaystack(item: EpdListItem): string {
     item.currentStepDone ? "выполнен" : "не выполнен",
     item.deletionMark ? "удалён" : "",
     item.comment,
+    commentTextForDisplay(item.comment),
     partyHaystack(item.shipper),
     partyHaystack(item.carrier),
     partyHaystack(item.consignee),
