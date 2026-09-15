@@ -480,72 +480,76 @@ body.modal-open {
 .doc-row-shell {
   position: relative;
   min-width: 0;
-  padding-left: 0.7rem;
+  padding-left: 10px;
   box-sizing: border-box;
 }
 
 .doc-comment-hover-zone {
   position: absolute;
   left: -6px;
-  top: -2px;
-  bottom: -2px;
+  top: -6px;
+  bottom: -6px;
   width: 10px;
   z-index: 2;
   cursor: default;
+  overflow: hidden;
   transition: width 0.22s ease;
 }
 
 .doc-comment-hover-zone:hover {
-  width: calc(100% - 2.6rem);
-  max-width: 7.25rem;
+  width: 50%;
   z-index: 3;
 }
 
-.doc-comment-shape {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
+.doc-comment-envelope {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  min-height: 100%;
+}
+
+.doc-comment-wedge-svg {
+  flex: 0 0 10px;
+  width: 10px;
   height: 100%;
   display: block;
-  pointer-events: none;
 }
 
-.doc-comment-shape-fill {
+.doc-comment-wedge-fill {
   fill: #e8caca;
-  opacity: 0.92;
-  transition: fill 0.18s ease;
+  opacity: 0.94;
 }
 
-.doc-comment-hover-zone:hover .doc-comment-shape-fill {
+.doc-comment-hover-zone:hover .doc-comment-wedge-fill {
   fill: #e2bcbc;
-  opacity: 0.98;
 }
 
-.doc-comment-flyout {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
+.doc-comment-panel {
+  flex: 1 1 auto;
+  min-width: 0;
   height: 100%;
-  pointer-events: none;
-  z-index: 1;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  background: #faf4f4;
+  border: 1px solid #e6cfcf;
+  border-left: none;
+  box-sizing: border-box;
+  transition:
+    max-width 0.22s ease,
+    opacity 0.15s ease 0.03s;
 }
 
-.doc-comment-hover-zone:hover .doc-comment-flyout {
-  pointer-events: auto;
+.doc-comment-hover-zone:hover .doc-comment-panel {
+  max-width: 20rem;
+  opacity: 1;
 }
 
 .doc-comment-flyout-inner {
   box-sizing: border-box;
-  position: absolute;
-  left: 14%;
-  right: 8%;
-  top: 0;
-  bottom: 0;
-  padding: 4px 6px 4px 4px;
+  height: 100%;
+  padding: 5px 7px 5px 5px;
   font-size: 0.76rem;
   line-height: 1.32;
   color: #5c3d3d;
@@ -553,19 +557,13 @@ body.modal-open {
   overflow-x: hidden;
   white-space: pre-wrap;
   word-break: break-word;
-  opacity: 0;
-  transition: opacity 0.14s ease 0.04s;
-}
-
-.doc-comment-hover-zone:hover .doc-comment-flyout-inner {
-  opacity: 1;
 }
 
 .doc-cell-with-icon {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 0.28em;
+  gap: 0.55em;
 }
 
 .doc-cell-body {
@@ -575,10 +573,11 @@ body.modal-open {
 
 .doc-type-icon {
   position: relative;
-  flex: 0 0 2.5rem;
-  width: 2.5rem;
-  height: 3.2rem;
-  margin-top: 1px;
+  flex: 0 0 2.42rem;
+  width: 2.42rem;
+  height: 3.05rem;
+  margin-top: 3px;
+  margin-bottom: 3px;
   color: #344054;
 }
 

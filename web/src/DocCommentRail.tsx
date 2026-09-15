@@ -4,7 +4,7 @@ type DocCommentRailProps = {
   comment: unknown;
 };
 
-/** Клин слева + выезжающая плашка (SVG — без clip-path для WebKit 1С). */
+/** Слева клин на всю высоту ячейки; при hover — «конверт»: клин + прямоугольник (~половина колонки). */
 export function DocCommentRail({ comment }: DocCommentRailProps) {
   const displayText = commentTextForDisplay(comment);
 
@@ -14,11 +14,13 @@ export function DocCommentRail({ comment }: DocCommentRailProps) {
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
-      <svg className="doc-comment-shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polygon className="doc-comment-shape-fill" points="0,0 0,100 100,50" />
-      </svg>
-      <div className="doc-comment-flyout" role="note">
-        <div className="doc-comment-flyout-inner">{displayText}</div>
+      <div className="doc-comment-envelope">
+        <svg className="doc-comment-wedge-svg" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon className="doc-comment-wedge-fill" points="0,0 0,100 10,50" />
+        </svg>
+        <div className="doc-comment-panel">
+          <div className="doc-comment-flyout-inner">{displayText}</div>
+        </div>
       </div>
     </div>
   );

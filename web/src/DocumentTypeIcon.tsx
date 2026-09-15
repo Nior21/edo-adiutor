@@ -4,7 +4,7 @@ type DocumentTypeIconProps = {
   signedSlots: boolean[];
 };
 
-/** «Лист A4»: тип по центру, крест при удалении, галочки подписантов снизу. */
+/** Один лист A4: верхний правый угол срезан под загиб (под загибом нет «второго» угла листа). */
 export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: DocumentTypeIconProps) {
   const label = docType?.trim() || "…";
   const slotCount = signedSlots.length;
@@ -25,8 +25,11 @@ export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: Documen
       aria-hidden="true"
     >
       <svg className="doc-type-icon-svg" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="38" height="50" rx="3" className="doc-type-icon-sheet" />
-        <path d="M 27 1 L 37 1 L 37 10 L 27 10 Z" className="doc-type-icon-fold" />
+        <path
+          d="M 3 48 C 3 50.8 5.2 53 8 53 H 32 C 34.8 53 37 50.8 37 48 V 10 H 27 V 1 H 8 C 5.2 1 3 3.2 3 6 Z"
+          className="doc-type-icon-sheet"
+        />
+        <path d="M 27 1 H 37 V 10 H 27 Z" className="doc-type-icon-fold" />
         <path d="M 27 1 L 37 10" className="doc-type-icon-fold-crease" />
         {deletionMark ? (
           <g className="doc-type-icon-mark doc-type-icon-mark-delete">
