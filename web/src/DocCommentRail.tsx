@@ -15,7 +15,7 @@ export function DocCommentRail({ comment }: DocCommentRailProps) {
       onMouseDown={(event) => event.stopPropagation()}
     >
       <svg className="doc-comment-shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polygon className="doc-comment-shape-fill" points="0,0 0,100 16,50 84,100 100,50 84,0 16,50" />
+        <polygon className="doc-comment-shape-fill" points="0,0 0,100 100,50" />
       </svg>
       <div className="doc-comment-flyout" role="note">
         <div className="doc-comment-flyout-inner">{displayText}</div>

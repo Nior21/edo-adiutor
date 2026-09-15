@@ -35,9 +35,7 @@ export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
     <div className="doc-row-shell">
       {showCommentRail ? <DocCommentRail comment={item.comment} /> : null}
       <div className="doc-cell doc-cell-with-icon">
-        <div className="doc-icon-slot">
-          <DocumentTypeIcon docType={item.docType} deletionMark={item.deletionMark} signedSlots={signedSlots} />
-        </div>
+        <DocumentTypeIcon docType={item.docType} deletionMark={item.deletionMark} signedSlots={signedSlots} />
         <div className="doc-cell-body">
           <div className="doc-line doc-line-head">
             <span className="doc-num-wrap">

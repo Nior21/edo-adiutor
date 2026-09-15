@@ -25,11 +25,9 @@ export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: Documen
       aria-hidden="true"
     >
       <svg className="doc-type-icon-svg" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M 3 48 L 3 6 Q 3 1 6 1 L 22 1 L 22 10 L 34 10 L 34 1 L 37 1 Q 39 1 39 3 L 39 48 Q 39 51 37 51 L 6 51 Q 3 51 3 48 Z"
-          className="doc-type-icon-sheet"
-        />
-        <path d="M 22 1 L 34 1 L 34 10 L 22 10 Z" className="doc-type-icon-fold" />
+        <rect x="1" y="1" width="38" height="50" rx="3" className="doc-type-icon-sheet" />
+        <path d="M 27 1 L 37 1 L 37 10 L 27 10 Z" className="doc-type-icon-fold" />
+        <path d="M 27 1 L 37 10" className="doc-type-icon-fold-crease" />
         {deletionMark ? (
           <g className="doc-type-icon-mark doc-type-icon-mark-delete">
             <circle cx="9" cy="9" r="7" fill="#fee4e2" stroke="#f04438" strokeWidth="1.2" />

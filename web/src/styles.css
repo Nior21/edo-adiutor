@@ -455,24 +455,7 @@ body.modal-open {
   min-width: 12.75rem;
   max-width: 12.75rem;
   box-sizing: border-box;
-  overflow: visible;
-  position: relative;
-  z-index: 1;
-  padding-left: 0;
-  padding-top: 3px;
-  padding-bottom: 3px;
-}
-
-.epd-table th:nth-child(1) {
-  padding-left: 0.75rem;
-}
-
-.epd-table tbody tr:hover {
-  z-index: 2;
-}
-
-.epd-table tbody tr:has(.doc-comment-hover-zone:hover) {
-  z-index: 4;
+  overflow: hidden;
 }
 
 .epd-table th:nth-child(2),
@@ -497,29 +480,33 @@ body.modal-open {
 .doc-row-shell {
   position: relative;
   min-width: 0;
-  min-height: 3.55rem;
-  padding-left: 0.75rem;
+  padding-left: 0.7rem;
   box-sizing: border-box;
 }
 
 .doc-comment-hover-zone {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 0.65rem;
-  z-index: 6;
+  left: -6px;
+  top: -2px;
+  bottom: -2px;
+  width: 10px;
+  z-index: 2;
   cursor: default;
-  transition: width 0.24s ease;
+  transition: width 0.22s ease;
 }
 
 .doc-comment-hover-zone:hover {
-  width: min(50vw, calc(100% - 2.85rem));
+  width: calc(100% - 2.6rem);
+  max-width: 7.25rem;
+  z-index: 3;
 }
 
 .doc-comment-shape {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
   display: block;
@@ -576,17 +563,9 @@ body.modal-open {
 
 .doc-cell-with-icon {
   display: flex;
-  align-items: stretch;
-  gap: 0.32em;
-  min-height: 3.55rem;
-}
-
-.doc-icon-slot {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: stretch;
-  padding: 2px 0;
-  margin-left: 2px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.28em;
 }
 
 .doc-cell-body {
@@ -596,11 +575,10 @@ body.modal-open {
 
 .doc-type-icon {
   position: relative;
-  height: 100%;
-  width: auto;
-  aspect-ratio: 40 / 52;
-  min-height: 3.45rem;
-  max-height: 3.52rem;
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 3.2rem;
+  margin-top: 1px;
   color: #344054;
 }
 
@@ -620,6 +598,12 @@ body.modal-open {
   fill: #f2f4f7;
   stroke: #98a2b3;
   stroke-width: 1;
+}
+
+.doc-type-icon-fold-crease {
+  stroke: #c5cad3;
+  stroke-width: 0.8;
+  fill: none;
 }
 
 .doc-type-icon-signatures {
