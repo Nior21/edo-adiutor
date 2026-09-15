@@ -424,8 +424,14 @@ export default function App() {
               payload.success || payload.openedNewWindow || payload.anchorReplaced ? "info" : "error";
             showToast(payload.message, kind, payload.success ? 12000 : 20000);
           }
-          if (payload.success && (payload.reloadedInPlace || payload.openedNewWindow)) {
-            beginDataLoadIfNeeded();
+          if (payload.success && payload.reloadedInPlace) {
+            dataLoadStarted.current = false;
+            updatePromptShown.current = false;
+            cancelListLoad();
+            // Загрузка реестра — после нового action=ready (HTML пересобран в этом окне).
+          } else if (payload.success && payload.openedNewWindow) {
+            dataLoadStarted.current = false;
+            cancelListLoad();
           } else if (!payload.success) {
             updatePromptShown.current = false;
             if (payload.launchedPath) {

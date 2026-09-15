@@ -40,7 +40,8 @@ export function UpdateOfferModal({
         {notes ? ` ${notes}` : ""}
       </p>
       <p className="muted update-offer-hint">
-        После обновления откроется новое окно; текущее можно закрыть. Реестр ЭПД загрузим после вашего выбора.
+        По возможности версия применится в этом же окне (без повторного «первого запуска» .epf). Если платформа
+        потребует — откроется новое окно, старое можно закрыть. Реестр загрузим после обновления.
       </p>
       <div className="update-offer-actions">
         <button type="button" className="button-ghost update-btn-primary" disabled={applying} onClick={onUpdate}>
