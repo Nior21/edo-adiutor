@@ -26,7 +26,7 @@ export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: Documen
     >
       <svg className="doc-type-icon-svg" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
-          d="M 3 48 C 3 50.8 5.2 53 8 53 H 32 C 34.8 53 37 50.8 37 48 V 10 H 27 V 1 H 8 C 5.2 1 3 3.2 3 6 Z"
+          d="M 3 48 C 3 50.2 4.8 52 7 52 H 33 C 35.2 52 37 50.2 37 48 V 10 H 27 V 1 H 7 C 4.8 1 3 2.8 3 5 V 48 Z"
           className="doc-type-icon-sheet"
         />
         <path d="M 27 1 H 37 V 10 H 27 Z" className="doc-type-icon-fold" />
