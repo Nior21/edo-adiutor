@@ -13,6 +13,13 @@ import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
 import { EpdTableRow } from "./EpdTableRow";
 import { useFloatingMenu } from "./FloatingMenu";
+import type { FloatingMenuEntry } from "./FloatingMenu";
+import { copyToClipboard } from "./copy";
+import { hasCommentWorkTag } from "./commentDisplay";
+import { setCommentWorkTag } from "./commentWorkTag";
+import { itemsByRefs, refsInVisibleRange } from "./listSelection";
+import { buildRowContextMenuEntries } from "./rowContextMenuItems";
+import { buildRowsCopyPreview, buildRowsCopyText } from "./rowCopyText";
 import { StatusBar } from "./StatusBar";
 import { TableSubhead } from "./TableSubhead";
 import { UpdateOfferModal } from "./UpdateOfferModal";
@@ -37,7 +44,7 @@ import { compareSemver } from "./semverCompare";
 import type { EpdListItem, UpdateInfoPayload, VersionCatalogItem } from "./types";
 
 const TABLE_HINT =
-  "Клик по строке — карточка. Клик по тексту — копирование. ПКМ — меню. ⋮ — действия строки. М — наша организация.";
+  "Клик — карточка. Ctrl/Shift — выделение строк. ПКМ — меню. [!] — метка «в фокус» в комментарии.";
 
 const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
 
@@ -60,6 +67,8 @@ export default function App() {
   const [versionPickerOpen, setVersionPickerOpen] = useState(false);
   const { toast, showToast } = useToast();
   const { openAt: openFloatingMenu, portal: floatingMenuPortal } = useFloatingMenu();
+  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(() => new Set());
+  const selectionAnchorRef = useRef("");
 
   const dataLoadStarted = useRef(false);
   const updatePromptShown = useRef(false);
@@ -478,12 +487,116 @@ export default function App() {
     requestDocument(ref, row.docType);
   };
 
+
+  const selectedItems = useMemo(
+    () => itemsByRefs(items, selectedRefs),
+    [items, selectedRefs],
+  );
+
+  const selectionCount = selectedRefs.size;
+
+  const applyCommentLocal = useCallback((item: EpdListItem, comment: string) => {
+    setItems((prev) => prev.map((row) => (row.ref === item.ref ? { ...row, comment } : row)));
+    setModalDoc((prev) => (prev?.ref === item.ref ? { ...prev, comment } : prev));
+    if (modalRef === item.ref) {
+      setCommentDraft(comment);
+    }
+    saveComment(item.ref, item.docType, comment);
+  }, [modalRef]);
+
+  const menuActions = useMemo(
+    () => ({
+      onCopied: handleCopied,
+      onSaveComment: applyCommentLocal,
+    }),
+    [applyCommentLocal, handleCopied],
+  );
+
+  const resolveMenuSelection = useCallback(
+    (row: EpdListItem) => {
+      if (selectedItems.length > 1 && selectedItems.some((item) => item.ref === row.ref)) {
+        return selectedItems;
+      }
+      return [row];
+    },
+    [selectedItems],
+  );
+
+  const getMenuEntries = useCallback(
+    (row: EpdListItem) => buildRowContextMenuEntries(row, resolveMenuSelection(row), menuActions),
+    [menuActions, resolveMenuSelection],
+  );
+
+  const clearRowSelection = useCallback(() => {
+    setSelectedRefs(new Set());
+  }, []);
   const closeModal = () => {
     setModalRef("");
     setModalDoc(null);
     setDocLoading(false);
   };
 
+
+  const handleRowClick = useCallback(
+    (row: EpdListItem, event: MouseEvent<HTMLTableRowElement>) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setSelectedRefs((prev) => {
+          const next = new Set(prev);
+          if (next.has(row.ref)) {
+            next.delete(row.ref);
+          } else {
+            next.add(row.ref);
+          }
+          return next;
+        });
+        selectionAnchorRef.current = row.ref;
+        return;
+      }
+      if (event.shiftKey && selectionAnchorRef.current) {
+        event.preventDefault();
+        const refs = refsInVisibleRange(visibleItems, selectionAnchorRef.current, row.ref);
+        setSelectedRefs(new Set(refs));
+        return;
+      }
+      clearRowSelection();
+      selectionAnchorRef.current = row.ref;
+      openModal(row.ref);
+    },
+    [clearRowSelection, visibleItems],
+  );
+
+  const copySelectedRows = useCallback(async () => {
+    if (selectedItems.length === 0) {
+      return;
+    }
+    const ok = await copyToClipboard(buildRowsCopyText(selectedItems));
+    if (ok) {
+      handleCopied(buildRowsCopyPreview(selectedItems));
+    }
+  }, [handleCopied, selectedItems]);
+
+  const setAttentionForSelected = useCallback(
+    (enabled: boolean) => {
+      for (const row of selectedItems) {
+        const next = setCommentWorkTag(row.comment, enabled);
+        if (next !== row.comment) {
+          applyCommentLocal(row, next);
+        }
+      }
+    },
+    [applyCommentLocal, selectedItems],
+  );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && selectedRefs.size > 0) {
+        clearRowSelection();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearRowSelection, selectedRefs.size]);
   const handleRefresh = () => {
     if (listBusy) {
       return;
@@ -571,12 +684,14 @@ export default function App() {
             </thead>
             <tbody>
               {visibleItems.map((item) => (
-                <EpdTableRow
+                                <EpdTableRow
                   key={item.ref}
                   item={item}
                   active={item.ref === modalRef}
+                  selected={selectedRefs.has(item.ref)}
                   enrichingEdo={enrichingRef === item.ref}
-                  onOpen={openModal}
+                  getMenuEntries={getMenuEntries}
+                  onRowClick={handleRowClick}
                   onCopied={handleCopied}
                   onOpenMenu={openFloatingMenu}
                 />

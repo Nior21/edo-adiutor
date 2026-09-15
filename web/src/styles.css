@@ -2483,3 +2483,48 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.row-selected td {
+  background: color-mix(in srgb, var(--accent, #2563eb) 10%, transparent);
+}
+
+.row-selected.row-active td {
+  background: color-mix(in srgb, var(--accent, #2563eb) 16%, transparent);
+}
+
+.floating-menu-heading {
+  padding: 0.35rem 0.75rem 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-fg, #64748b);
+  pointer-events: none;
+}
+
+.status-bar-selection .status-bar-message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.status-bar-quick-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.status-quick-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent, #2563eb);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.status-quick-link:hover {
+  opacity: 0.85;
+}

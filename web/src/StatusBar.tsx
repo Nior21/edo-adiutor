@@ -13,6 +13,11 @@ type StatusBarProps = {
   updateAvailable: boolean;
   updateTargetVersion?: string;
   updateError?: string;
+  selectionCount?: number;
+  onClearSelection?: () => void;
+  onCopySelection?: () => void;
+  onFlagSelection?: () => void;
+  onUnflagSelection?: () => void;
   onAboutOpen: () => void;
   onVersionClick?: () => void;
 };
@@ -28,6 +33,11 @@ export function StatusBar({
   updateAvailable,
   updateTargetVersion,
   updateError,
+  selectionCount = 0,
+  onClearSelection,
+  onCopySelection,
+  onFlagSelection,
+  onUnflagSelection,
   onAboutOpen,
   onVersionClick,
 }: StatusBarProps) {
@@ -35,6 +45,7 @@ export function StatusBar({
   const loading = isLoadActive(loadProgress);
   const percent = loadProgress ? loadProgressPercent(loadProgress) : 0;
   const loadLabel = loadProgress ? loadProgressLabel(loadProgress) : "";
+  const hasSelection = selectionCount > 0;
 
   let message = hint;
   let messageClass = "status-bar-hint-text";
@@ -47,6 +58,9 @@ export function StatusBar({
   } else if (toast) {
     message = toast.message;
     messageClass = isError ? "status-bar-error" : "status-bar-info";
+  } else if (hasSelection) {
+    message = `Выделено документов: ${selectionCount}. Esc — снять выделение.`;
+    messageClass = "status-bar-info";
   } else if (versionMismatch && moduleVersion) {
     const uiNewer =
       moduleVersion.localeCompare(uiVersion, undefined, { numeric: true }) < 0;
@@ -92,7 +106,7 @@ export function StatusBar({
 
   return (
     <footer
-      className={`status-bar ${loading || updateChecking ? "status-bar-loading" : toast ? "status-bar-active" : "status-bar-hint"}`}
+      className={`status-bar ${loading || updateChecking ? "status-bar-loading" : toast ? "status-bar-active" : hasSelection ? "status-bar-selection" : "status-bar-hint"}`}
       role="status"
     >
       <div className="status-bar-body">
@@ -104,7 +118,25 @@ export function StatusBar({
             </div>
           </>
         ) : (
-          <span className={`status-bar-message ${messageClass}`}>{message}</span>
+          <span className={`status-bar-message ${messageClass}`}>
+            {message}
+            {hasSelection ? (
+              <span className="status-bar-quick-actions">
+                <button type="button" className="status-quick-link" onClick={onCopySelection}>
+                  Скопировать всё
+                </button>
+                <button type="button" className="status-quick-link" onClick={onFlagSelection}>
+                  В фокус [!]
+                </button>
+                <button type="button" className="status-quick-link" onClick={onUnflagSelection}>
+                  Снять [!]
+                </button>
+                <button type="button" className="status-quick-link" onClick={onClearSelection}>
+                  Снять выделение
+                </button>
+              </span>
+            ) : null}
+          </span>
         )}
       </div>
 

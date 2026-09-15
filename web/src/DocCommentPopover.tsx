@@ -94,9 +94,13 @@ export function DocCommentPopover({ open, text, rowRef, onMouseEnter, onMouseLea
     };
   }, [open, rowRef]);
 
-  if (!open || !layout || !text) {
+  if (!open || !layout) {
     return null;
   }
+
+  const body = text.trim()
+    ? text
+    : "Метка «в фокус» ([!]). Подробный комментарий можно дописать в карточке документа.";
 
   const style = {
     left: layout.left,
@@ -116,7 +120,7 @@ export function DocCommentPopover({ open, text, rowRef, onMouseEnter, onMouseLea
       onMouseDown={(event) => event.stopPropagation()}
       role="tooltip"
     >
-      <div className="doc-comment-popover-inner">{text}</div>
+      <div className="doc-comment-popover-inner">{body}</div>
     </div>,
     document.body,
   );

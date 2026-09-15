@@ -2,19 +2,30 @@ import { useRef, type MouseEvent } from "react";
 import { DocCellView } from "./DocCellView";
 import { PartyCellView } from "./PartyCellView";
 import { RowContextMenu, type RowContextMenuHandle } from "./RowContextMenu";
-import type { FloatingMenuItem } from "./FloatingMenu";
+import type { FloatingMenuEntry } from "./FloatingMenu";
 import type { EpdListItem } from "./types";
 
 type EpdTableRowProps = {
   item: EpdListItem;
   active: boolean;
+  selected: boolean;
   enrichingEdo?: boolean;
-  onOpen: (ref: string) => void;
+  getMenuEntries: (item: EpdListItem) => FloatingMenuEntry[];
+  onRowClick: (item: EpdListItem, event: MouseEvent<HTMLTableRowElement>) => void;
   onCopied: (value: string) => void;
-  onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
+  onOpenMenu: (x: number, y: number, items: FloatingMenuEntry[]) => void;
 };
 
-export function EpdTableRow({ item, active, enrichingEdo = false, onOpen, onCopied, onOpenMenu }: EpdTableRowProps) {
+export function EpdTableRow({
+  item,
+  active,
+  selected,
+  enrichingEdo = false,
+  getMenuEntries,
+  onRowClick,
+  onCopied,
+  onOpenMenu,
+}: EpdTableRowProps) {
   const menuRef = useRef<RowContextMenuHandle>(null);
   const trRef = useRef<HTMLTableRowElement>(null);
 
@@ -28,11 +39,19 @@ export function EpdTableRow({ item, active, enrichingEdo = false, onOpen, onCopi
     event.stopPropagation();
   };
 
+  const rowClass = [
+    item.deletionMark ? "row-deleted" : "",
+    active ? "row-active" : "",
+    selected ? "row-selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <tr
       ref={trRef}
-      className={`${item.deletionMark ? "row-deleted" : ""} ${active ? "row-active" : ""}`}
-      onClick={() => onOpen(item.ref)}
+      className={rowClass}
+      onClick={(event) => onRowClick(item, event)}
       onContextMenu={handleRowContextMenu}
     >
       <td className="col-doc-cell">
@@ -66,7 +85,11 @@ export function EpdTableRow({ item, active, enrichingEdo = false, onOpen, onCopi
         />
       </td>
       <td className="col-row-menu" onClick={handleMenuCellClick}>
-        <RowContextMenu ref={menuRef} item={item} onCopied={onCopied} onOpenMenu={onOpenMenu} />
+        <RowContextMenu
+          ref={menuRef}
+          getMenuEntries={() => getMenuEntries(item)}
+          onOpenMenu={onOpenMenu}
+        />
       </td>
     </tr>
   );

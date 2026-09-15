@@ -1,42 +1,24 @@
 import { forwardRef, useImperativeHandle, type MouseEvent } from "react";
-import { copyToClipboard } from "./copy";
-import { buildRowCopyPreview, buildRowCopyText } from "./rowCopyText";
-import type { FloatingMenuItem } from "./FloatingMenu";
-import type { EpdListItem } from "./types";
+import type { FloatingMenuEntry } from "./FloatingMenu";
 
 export type RowContextMenuHandle = {
   openAt: (x: number, y: number) => void;
 };
 
 type RowContextMenuProps = {
-  item: EpdListItem;
-  onCopied: (value: string) => void;
-  onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
+  getMenuEntries: () => FloatingMenuEntry[];
+  onOpenMenu: (x: number, y: number, items: FloatingMenuEntry[]) => void;
 };
 
 export const RowContextMenu = forwardRef<RowContextMenuHandle, RowContextMenuProps>(function RowContextMenu(
-  { item, onCopied, onOpenMenu },
+  { getMenuEntries, onOpenMenu },
   ref,
 ) {
-  const buildItems = (): FloatingMenuItem[] => [
-    {
-      id: "copy-all",
-      label: "Скопировать всё",
-      onSelect: async () => {
-        const text = buildRowCopyText(item);
-        const ok = await copyToClipboard(text);
-        if (ok) {
-          onCopied(buildRowCopyPreview(item));
-        }
-      },
-    },
-  ];
-
   const openAt = (x: number, y: number) => {
-    onOpenMenu(x, y, buildItems());
+    onOpenMenu(x, y, getMenuEntries());
   };
 
-  useImperativeHandle(ref, () => ({ openAt }), [item, onCopied, onOpenMenu]);
+  useImperativeHandle(ref, () => ({ openAt }), [getMenuEntries, onOpenMenu]);
 
   const handleMenuButton = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();

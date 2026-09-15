@@ -33,5 +33,5 @@ export function commentTextForDisplay(raw: unknown): string {
 
 /** Показать клин и hover-плашку: только [!] и непустой текст после тега. */
 export function shouldShowCommentWorkRail(raw: unknown): boolean {
-  return hasCommentWorkTag(raw) && commentTextForDisplay(raw).length > 0;
+  return hasCommentWorkTag(raw);
 }

@@ -57,3 +57,16 @@ export function buildRowCopyPreview(item: EpdListItem): string {
   const date = item.date ? formatDateShort(item.date) : "";
   return date ? `${head} · ${date}` : head;
 }
+export function buildRowsCopyText(items: EpdListItem[]): string {
+  return items.map((item) => buildRowCopyText(item)).join("\n\n—\n\n");
+}
+
+export function buildRowsCopyPreview(items: EpdListItem[]): string {
+  if (items.length === 0) {
+    return "";
+  }
+  if (items.length === 1) {
+    return buildRowCopyPreview(items[0]);
+  }
+  return `${items.length} документов: ${buildRowCopyPreview(items[0])} …`;
+}
