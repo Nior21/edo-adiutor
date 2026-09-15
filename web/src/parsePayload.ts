@@ -234,6 +234,9 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
     targetPath: parsed.targetPath ?? "",
     launchedVersion: parsed.launchedVersion ?? "",
     launchedPath: parsed.launchedPath ?? "",
+    anchorReplaced: parsed.anchorReplaced === true,
+    openedNewWindow: parsed.openedNewWindow === true,
+    reloadedInPlace: parsed.reloadedInPlace === true,
   };
 }
 

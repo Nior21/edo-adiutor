@@ -159,6 +159,9 @@ export type UpdateInfoPayload = {
   targetPath?: string;
   launchedVersion?: string;
   launchedPath?: string;
+  anchorReplaced?: boolean;
+  openedNewWindow?: boolean;
+  reloadedInPlace?: boolean;
   githubReleaseUrl?: string;
 };
 

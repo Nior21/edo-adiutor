@@ -405,11 +405,23 @@ export default function App() {
         } else if (payload.phase === "apply") {
           setUpdateApplying(false);
           setUpdateChecking(false);
-          if (payload.success && payload.latestVersion) {
-            setModuleVersion(payload.latestVersion);
+          if (payload.reloadedInPlace && payload.currentVersion) {
+            setModuleVersion(payload.currentVersion);
+          } else if (payload.currentVersion && !payload.openedNewWindow) {
+            setModuleVersion(payload.currentVersion);
           }
           if (payload.message) {
-            showToast(payload.message, payload.success ? "info" : "error");
+            const kind =
+              payload.success || payload.openedNewWindow || payload.anchorReplaced ? "info" : "error";
+            showToast(payload.message, kind, payload.success ? 12000 : 20000);
+          }
+          if (payload.success && (payload.reloadedInPlace || payload.openedNewWindow)) {
+            beginDataLoadIfNeeded();
+          } else if (!payload.success) {
+            updatePromptShown.current = false;
+            if (payload.launchedPath) {
+              beginDataLoadIfNeeded();
+            }
           }
         } else if (payload.phase === "check") {
           handleUpdateCheckPayload(payload);

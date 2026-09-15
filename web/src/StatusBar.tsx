@@ -48,7 +48,11 @@ export function StatusBar({
     message = toast.message;
     messageClass = isError ? "status-bar-error" : "status-bar-info";
   } else if (versionMismatch && moduleVersion) {
-    message = `Интерфейс v${uiVersion}, модуль EPF v${moduleVersion} — нужна пересборка (F7) или обновление`;
+    const uiNewer =
+      moduleVersion.localeCompare(uiVersion, undefined, { numeric: true }) < 0;
+    message = uiNewer
+      ? `Интерфейс v${uiVersion}, модуль EPF v${moduleVersion} — пересборка pack.ps1 / F7 (для разработки)`
+      : `Интерфейс v${uiVersion}, в EPF модуль v${moduleVersion} — нажмите «Обновить» или откройте .epf из bin/releases`;
     messageClass = "status-bar-error";
   } else if (updateAvailable && updateTargetVersion) {
     message = `Доступна версия v${updateTargetVersion} — нажмите на бейдж справа для обновления`;
