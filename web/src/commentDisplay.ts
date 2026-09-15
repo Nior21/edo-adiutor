@@ -1,6 +1,6 @@
 import { trimLeadingWhitespace } from "./stringCompat";
 
-/** Служебный префикс: «ошибка / разбор в работе». В UI не показываем, в 1С хранится в начале комментария. */
+/** Служебный префикс: «ошибка / разбор в работе». Плашка слева — только с этим тегом. */
 export const COMMENT_WORK_TAG = "[!]";
 
 /** 1С иногда отдаёт null/число или поле отсутствует. */
@@ -19,7 +19,7 @@ export function hasCommentWorkTag(raw: unknown): boolean {
   return trimmed.startsWith(COMMENT_WORK_TAG);
 }
 
-/** Текст для выезжающей плашки и отображения (без служебного тега). */
+/** Текст для выезжающей плашки (без служебного тега). */
 export function commentTextForDisplay(raw: unknown): string {
   let text = trimLeadingWhitespace(normalizeCommentRaw(raw));
   if (text.startsWith(COMMENT_WORK_TAG)) {
@@ -31,6 +31,7 @@ export function commentTextForDisplay(raw: unknown): string {
   return text.trim();
 }
 
-export function hasDisplayableComment(raw: unknown): boolean {
-  return commentTextForDisplay(raw).length > 0;
+/** Показать клин и hover-плашку: только [!] и непустой текст после тега. */
+export function shouldShowCommentWorkRail(raw: unknown): boolean {
+  return hasCommentWorkTag(raw) && commentTextForDisplay(raw).length > 0;
 }

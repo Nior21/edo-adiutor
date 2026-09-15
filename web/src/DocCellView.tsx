@@ -1,5 +1,5 @@
 import { openDocument } from "./bridge";
-import { hasDisplayableComment } from "./commentDisplay";
+import { shouldShowCommentWorkRail } from "./commentDisplay";
 import { Copyable } from "./Copyable";
 import { DocCommentRail } from "./DocCommentRail";
 import { DocumentTypeIcon } from "./DocumentTypeIcon";
@@ -29,13 +29,15 @@ export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
   const stepTitle = `${stepLabel} — ${stepStatus}`;
 
   const signedSlots = signedSignatureSlots(item);
-  const showCommentRail = hasDisplayableComment(item.comment);
+  const showCommentRail = shouldShowCommentWorkRail(item.comment);
 
   return (
-    <div className={`doc-row-shell${showCommentRail ? " doc-row-shell-has-comment" : ""}`}>
+    <div className="doc-row-shell">
       {showCommentRail ? <DocCommentRail comment={item.comment} /> : null}
       <div className="doc-cell doc-cell-with-icon">
-        <DocumentTypeIcon docType={item.docType} deletionMark={item.deletionMark} signedSlots={signedSlots} />
+        <div className="doc-icon-slot">
+          <DocumentTypeIcon docType={item.docType} deletionMark={item.deletionMark} signedSlots={signedSlots} />
+        </div>
         <div className="doc-cell-body">
           <div className="doc-line doc-line-head">
             <span className="doc-num-wrap">
