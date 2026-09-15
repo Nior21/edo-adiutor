@@ -1,27 +1,33 @@
 import { commentTextForDisplay } from "./commentDisplay";
 
 type DocCommentRailProps = {
-  comment: unknown;
+  commentText: string;
+  expanded: boolean;
+  expandWidthPx: number;
 };
 
-/** Слева клин на всю высоту ячейки; при hover — «конверт»: клин + прямоугольник (~половина колонки). */
-export function DocCommentRail({ comment }: DocCommentRailProps) {
-  const displayText = commentTextForDisplay(comment);
+const WEDGE_PX = 11;
+
+/** «Шкала загрузки» строки: клин всегда виден; при hover — клин и заливка вместе до ~50% ширины tr. */
+export function DocCommentRail({ commentText, expanded, expandWidthPx }: DocCommentRailProps) {
+  const widthPx = expanded ? Math.max(WEDGE_PX, expandWidthPx) : WEDGE_PX;
 
   return (
     <div
-      className="doc-comment-hover-zone"
+      className={`doc-comment-track${expanded ? " is-expanded" : ""}`}
+      style={{ width: `${widthPx}px` }}
+      aria-hidden={!expanded}
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
-      <div className="doc-comment-envelope">
-        <svg className="doc-comment-wedge-svg" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true">
-          <polygon className="doc-comment-wedge-fill" points="0,0 0,100 10,50" />
-        </svg>
-        <div className="doc-comment-panel">
-          <div className="doc-comment-flyout-inner">{displayText}</div>
-        </div>
+      <svg className="doc-comment-wedge-svg" viewBox="0 0 11 100" preserveAspectRatio="none" aria-hidden="true">
+        <polygon className="doc-comment-wedge-fill" points="0,0 0,100 11,50" />
+      </svg>
+      <div className="doc-comment-bar-fill">
+        <div className="doc-comment-flyout-inner">{commentText}</div>
       </div>
     </div>
   );
 }
+
+export const DOC_COMMENT_WEDGE_PX = WEDGE_PX;

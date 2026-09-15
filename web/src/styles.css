@@ -477,41 +477,62 @@ body.modal-open {
   min-width: 0;
 }
 
+.epd-table tr.row-has-comment-rail td.col-doc-cell {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.doc-row-shell.doc-row-rail-expanded {
+  z-index: 6;
+}
+
 .doc-row-shell {
   position: relative;
-  min-width: 0;
-  padding-left: 10px;
-  box-sizing: border-box;
-}
-
-.doc-comment-hover-zone {
-  position: absolute;
-  left: -6px;
-  top: -6px;
-  bottom: -6px;
-  width: 10px;
-  z-index: 2;
-  cursor: default;
-  overflow: hidden;
-  transition: width 0.22s ease;
-}
-
-.doc-comment-hover-zone:hover {
-  width: 50%;
-  z-index: 3;
-}
-
-.doc-comment-envelope {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  height: 100%;
-  min-height: 100%;
+  min-width: 0;
+  padding-left: 10px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.doc-left-zone {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  cursor: default;
+}
+
+.doc-left-zone-with-rail .doc-type-icon {
+  margin-left: 11px;
+}
+
+.doc-comment-track {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+  z-index: 0;
+  transition: width 0.22s ease;
+  pointer-events: none;
+}
+
+.doc-comment-track.is-expanded {
+  z-index: 5;
+  pointer-events: auto;
 }
 
 .doc-comment-wedge-svg {
-  flex: 0 0 10px;
-  width: 10px;
+  flex: 0 0 11px;
+  width: 11px;
   height: 100%;
   display: block;
 }
@@ -521,28 +542,23 @@ body.modal-open {
   opacity: 0.94;
 }
 
-.doc-comment-hover-zone:hover .doc-comment-wedge-fill {
+.doc-comment-track.is-expanded .doc-comment-wedge-fill {
   fill: #e2bcbc;
 }
 
-.doc-comment-panel {
+.doc-comment-bar-fill {
   flex: 1 1 auto;
   min-width: 0;
   height: 100%;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
   background: #faf4f4;
   border: 1px solid #e6cfcf;
   border-left: none;
   box-sizing: border-box;
-  transition:
-    max-width 0.22s ease,
-    opacity 0.15s ease 0.03s;
+  opacity: 0;
+  transition: opacity 0.12s ease;
 }
 
-.doc-comment-hover-zone:hover .doc-comment-panel {
-  max-width: 20rem;
+.doc-comment-track.is-expanded .doc-comment-bar-fill {
   opacity: 1;
 }
 
@@ -559,26 +575,21 @@ body.modal-open {
   word-break: break-word;
 }
 
-.doc-cell-with-icon {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.55em;
-}
-
 .doc-cell-body {
   min-width: 0;
   flex: 1 1 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .doc-type-icon {
   position: relative;
-  flex: 0 0 2.42rem;
-  width: 2.42rem;
-  height: 3.05rem;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  flex: 0 0 auto;
+  width: calc(var(--doc-icon-h, 2.85rem) * 40 / 52);
+  height: var(--doc-icon-h, 2.85rem);
+  margin: 0;
   color: #344054;
+  z-index: 1;
 }
 
 .doc-type-icon-svg {

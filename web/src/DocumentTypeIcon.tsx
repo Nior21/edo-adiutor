@@ -4,7 +4,7 @@ type DocumentTypeIconProps = {
   signedSlots: boolean[];
 };
 
-/** Один лист A4: верхний правый угол срезан под загиб (под загибом нет «второго» угла листа). */
+/** Лист A4: скруглённый прямоугольник + загиб поверх (без «дырки» под углом). */
 export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: DocumentTypeIconProps) {
   const label = docType?.trim() || "…";
   const slotCount = signedSlots.length;
@@ -26,11 +26,11 @@ export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: Documen
     >
       <svg className="doc-type-icon-svg" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
-          d="M 3 48 C 3 50.2 4.8 52 7 52 H 33 C 35.2 52 37 50.2 37 48 V 10 H 27 V 1 H 7 C 4.8 1 3 2.8 3 5 V 48 Z"
+          d="M 7 1 H 24 L 37 14 V 48 C 37 50.2 35.2 52 33 52 H 7 C 4.8 52 3 50.2 3 48 V 5 C 3 2.8 4.8 1 7 1 Z"
           className="doc-type-icon-sheet"
         />
-        <path d="M 27 1 H 37 V 10 H 27 Z" className="doc-type-icon-fold" />
-        <path d="M 27 1 L 37 10" className="doc-type-icon-fold-crease" />
+        <path d="M 24 1 L 37 14 L 24 14 Z" className="doc-type-icon-fold" />
+        <path d="M 24 1 L 37 14" className="doc-type-icon-fold-crease" />
         {deletionMark ? (
           <g className="doc-type-icon-mark doc-type-icon-mark-delete">
             <circle cx="9" cy="9" r="7" fill="#fee4e2" stroke="#f04438" strokeWidth="1.2" />
