@@ -1,7 +1,7 @@
 import { commentTextForDisplay, hasCommentWorkTag } from "./commentDisplay";
 
 type DocCommentRailProps = {
-  comment: string;
+  comment: unknown;
 };
 
 export function DocCommentRail({ comment }: DocCommentRailProps) {

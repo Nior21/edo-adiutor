@@ -1,3 +1,4 @@
+import { normalizeCommentRaw } from "./commentDisplay";
 import type {
   EdoDiagnosticsPayload,
   EdoOnlineIdsPayload,
@@ -8,6 +9,17 @@ import type {
   ListPagePayload,
   UpdateInfoPayload,
 } from "./types";
+
+function normalizeEpdListItem(item: EpdListItem): EpdListItem {
+  return {
+    ...item,
+    comment: normalizeCommentRaw(item.comment),
+  };
+}
+
+function normalizeEpdListItems(items: EpdListItem[]): EpdListItem[] {
+  return items.map((item) => normalizeEpdListItem(item));
+}
 
 export function parseJsonValue<T>(value: unknown, fallback: T): T {
   if (value === null || value === undefined) {
@@ -42,7 +54,7 @@ export function parseInitPayload(value: unknown): InitPayload {
   }
   return {
     version: payload.version ?? fallback.version,
-    items: Array.isArray(payload.items) ? payload.items : [],
+    items: normalizeEpdListItems(Array.isArray(payload.items) ? payload.items : []),
   };
 }
 
@@ -76,7 +88,7 @@ export function parseListPagePayload(value: unknown): { page: ListPagePayload | 
       offset: payload.offset ?? 0,
       limit: payload.limit ?? 0,
       total: payload.total ?? 0,
-      items: Array.isArray(payload.items) ? payload.items : [],
+      items: normalizeEpdListItems(Array.isArray(payload.items) ? payload.items : []),
     },
     error: "",
   };
@@ -236,5 +248,5 @@ export function parseDocumentPayload(value: unknown): { item: EpdListItem | null
   if (!("ref" in payload) || !payload.ref) {
     return { item: null, error: "Некорректная структура документа" };
   }
-  return { item: payload as EpdListItem, error: "" };
+  return { item: normalizeEpdListItem(payload as EpdListItem), error: "" };
 }

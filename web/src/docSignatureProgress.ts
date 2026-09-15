@@ -1,8 +1,8 @@
 import type { EpdListItem } from "./types";
 
 /** Число «подписей» на значке документа (резерв секций). */
-export function signatureSlotCount(docType: string): number {
-  const t = docType.trim().toUpperCase();
+export function signatureSlotCount(docType: unknown): number {
+  const t = (docType == null ? "" : String(docType)).trim().toUpperCase();
   if (t === "ЭЗЗ" || t === "EZZ") {
     return 2;
   }
