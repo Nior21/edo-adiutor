@@ -63,8 +63,8 @@ export function parseListMetaPayload(value: unknown): { meta: ListMetaPayload | 
   if (!payload || typeof payload !== "object") {
     return { meta: null, error: "Пустой ответ метаданных" };
   }
-  if (payload.error) {
-    return { meta: null, error: payload.error };
+  if ("error" in payload) {
+    return { meta: null, error: payload.error || "Запрос метаданных отменён" };
   }
   return {
     meta: {
@@ -170,6 +170,8 @@ export function parseUpdateInfoPayload(value: unknown): UpdateInfoPayload | null
   let phase: UpdateInfoPayload["phase"] = "check";
   if (parsed.phase === "apply") {
     phase = "apply";
+  } else if (parsed.phase === "resumeAfterReload") {
+    phase = "resumeAfterReload";
   } else if (parsed.phase === "superseded" || parsed.uiMode === "superseded") {
     phase = "superseded";
   }

@@ -73,6 +73,7 @@ export default function App() {
   const dataLoadStarted = useRef(false);
   const updatePromptShown = useRef(false);
   const pendingVersionPicker = useRef(false);
+  const updateInProgress = useRef(false);
 
   const listBusy = isLoadActive(loadProgress) || refreshActive;
   const enrichingRef = loadProgress?.enrichingRef ?? null;
@@ -149,7 +150,7 @@ export default function App() {
   }, [moduleVersion, updateInfo]);
 
   const beginDataLoadIfNeeded = useCallback(() => {
-    if (dataLoadStarted.current || superseded) {
+    if (dataLoadStarted.current || superseded || updateInProgress.current) {
       return;
     }
     dataLoadStarted.current = true;
@@ -198,6 +199,9 @@ export default function App() {
       onError: (message) => {
         setLoadProgress(null);
         setRefreshActive(false);
+        if (updateInProgress.current) {
+          return;
+        }
         showToast(message, "error");
       },
     });
@@ -217,7 +221,7 @@ export default function App() {
         pendingVersionPicker.current = false;
         setVersionPickerOpen(true);
       }
-      if (dataLoadStarted.current || updatePromptShown.current) {
+      if (dataLoadStarted.current || updatePromptShown.current || updateInProgress.current) {
         return;
       }
       let target =
@@ -334,6 +338,9 @@ export default function App() {
     const watchdog = window.setTimeout(() => {
       setUpdateChecking(false);
       pendingVersionPicker.current = false;
+      if (updateInProgress.current) {
+        return;
+      }
       showToast("Проверка обновлений заняла слишком долго — продолжаем загрузку реестра.", "error", 15000);
       beginDataLoadIfNeeded();
     }, 25000);
@@ -408,9 +415,21 @@ export default function App() {
         }
         setUpdateInfo(payload);
         if (payload.phase === "superseded" || payload.uiMode === "superseded") {
+          updateInProgress.current = false;
           setUpdateApplying(false);
           setUpdateChecking(false);
           setUpdateOfferOpen(false);
+        } else if (payload.phase === "resumeAfterReload") {
+          updateInProgress.current = false;
+          setUpdateApplying(false);
+          setUpdateChecking(false);
+          if (payload.currentVersion) {
+            setModuleVersion(payload.currentVersion);
+          }
+          dataLoadStarted.current = false;
+          updatePromptShown.current = false;
+          cancelListLoad();
+          beginDataLoadIfNeeded();
         } else if (payload.phase === "apply") {
           setUpdateApplying(false);
           setUpdateChecking(false);
@@ -425,14 +444,17 @@ export default function App() {
             showToast(payload.message, kind, payload.success ? 12000 : 20000);
           }
           if (payload.success && payload.reloadedInPlace) {
+            updateInProgress.current = true;
             dataLoadStarted.current = false;
             updatePromptShown.current = false;
             cancelListLoad();
-            // Загрузка реестра — после нового action=ready (HTML пересобран в этом окне).
+            // Загрузка реестра — после phase=resumeAfterReload (новый ready после HTML).
           } else if (payload.success && payload.openedNewWindow) {
+            updateInProgress.current = false;
             dataLoadStarted.current = false;
             cancelListLoad();
           } else if (!payload.success) {
+            updateInProgress.current = false;
             updatePromptShown.current = false;
             if (payload.launchedPath) {
               beginDataLoadIfNeeded();
@@ -468,8 +490,10 @@ export default function App() {
         setUpdateChecking(false);
         setUpdateApplying(false);
         pendingVersionPicker.current = false;
-        showToast(message, "error", 15000);
-        beginDataLoadIfNeeded();
+        if (!updateInProgress.current) {
+          showToast(message, "error", 15000);
+          beginDataLoadIfNeeded();
+        }
       },
     });
 
@@ -612,6 +636,8 @@ export default function App() {
   };
 
   const handleApplyUpdate = useCallback(() => {
+    updateInProgress.current = true;
+    cancelListLoad();
     setUpdateApplying(true);
     setUpdateOfferOpen(false);
     requestApplyUpdate(updateInfo?.epfPath, updateInfo?.targetVersion, updateInfo?.epfUrl);
@@ -644,6 +670,8 @@ export default function App() {
       }
       const epfUrl = item.epfUrl || (item.kind === "remote" ? updateInfo?.epfUrl : undefined);
       if (item.kind === "remote" && !item.installed && epfUrl) {
+        updateInProgress.current = true;
+        cancelListLoad();
         setUpdateApplying(true);
         requestApplyUpdate(updateInfo?.epfPath, item.version, epfUrl);
         return;

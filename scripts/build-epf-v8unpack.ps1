@@ -48,7 +48,7 @@ function Convert-BinToC1B64([string]$BinPath) {
 if (-not $BaselineEpf) {
     $BaselineEpf = Join-Path $env:TEMP "EdoAdiutor.epf"
     if (-not (Test-Path -LiteralPath $BaselineEpf)) {
-        gh release download v0.8.27 -p EdoAdiutor.epf -D $env:TEMP --repo Nior21/edo-adiutor --clobber
+        gh release download v0.8.28 -p EdoAdiutor.epf -D $env:TEMP --repo Nior21/edo-adiutor --clobber
     }
 }
 if (-not (Test-Path -LiteralPath $BaselineEpf)) {

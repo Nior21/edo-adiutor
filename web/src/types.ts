@@ -137,7 +137,7 @@ export type VersionCatalogItem = {
 };
 
 export type UpdateInfoPayload = {
-  phase: "check" | "apply" | "superseded";
+  phase: "check" | "apply" | "superseded" | "resumeAfterReload";
   uiMode?: "normal" | "superseded";
   currentVersion?: string;
   latestVersion?: string;
