@@ -2,10 +2,12 @@ type DocumentTypeIconProps = {
   docType: string;
   deletionMark?: boolean;
   signedSlots: boolean[];
+  /** [!] в верхнем правом углу листа */
+  workComment?: boolean;
 };
 
 /** Лист A4: скруглённый прямоугольник + загиб поверх (без «дырки» под углом). */
-export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: DocumentTypeIconProps) {
+export function DocumentTypeIcon({ docType, deletionMark, signedSlots, workComment }: DocumentTypeIconProps) {
   const label = docType?.trim() || "…";
   const slotCount = signedSlots.length;
 
@@ -24,6 +26,11 @@ export function DocumentTypeIcon({ docType, deletionMark, signedSlots }: Documen
       title={deletionMark ? "Помечен на удаление" : docType}
       aria-hidden="true"
     >
+      {workComment ? (
+        <span className="doc-type-work-badge" title="Есть комментарий к задаче">
+          !
+        </span>
+      ) : null}
       <svg className="doc-type-icon-svg" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
           d="M 7 1 H 24 L 37 14 V 48 C 37 50.2 35.2 52 33 52 H 7 C 4.8 52 3 50.2 3 48 V 5 C 3 2.8 4.8 1 7 1 Z"

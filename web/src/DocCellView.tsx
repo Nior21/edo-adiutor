@@ -1,8 +1,8 @@
-import { useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import { openDocument } from "./bridge";
 import { commentTextForDisplay, shouldShowCommentWorkRail } from "./commentDisplay";
 import { Copyable } from "./Copyable";
-import { DocCommentRail } from "./DocCommentRail";
+import { DocCommentPopover } from "./DocCommentPopover";
 import { DocumentTypeIcon } from "./DocumentTypeIcon";
 import { signedSignatureSlots } from "./docSignatureProgress";
 import { ExternalLinkIcon } from "./ExternalLinkIcon";
@@ -12,15 +12,14 @@ import type { EpdListItem } from "./types";
 
 type DocCellViewProps = {
   item: EpdListItem;
-  rowWidthPx: number;
-  rowHeightPx: number;
+  rowRef: RefObject<HTMLTableRowElement | null>;
   onCopied: (value: string) => void;
   onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
 };
 
-export function DocCellView({ item, rowWidthPx, rowHeightPx, onCopied, onOpenMenu }: DocCellViewProps) {
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [railExpanded, setRailExpanded] = useState(false);
+export function DocCellView({ item, rowRef, onCopied, onOpenMenu }: DocCellViewProps) {
+  const closeTimerRef = useRef<number | null>(null);
+  const [commentOpen, setCommentOpen] = useState(false);
 
   const handleOpenIn1C = () => {
     openDocument(item.ref, item.docType);
@@ -35,41 +34,51 @@ export function DocCellView({ item, rowWidthPx, rowHeightPx, onCopied, onOpenMen
   const stepTitle = `${stepLabel} - ${stepStatus}`;
 
   const signedSlots = signedSignatureSlots(item);
-  const showCommentRail = shouldShowCommentWorkRail(item.comment);
+  const showWorkComment = shouldShowCommentWorkRail(item.comment);
   const commentText = commentTextForDisplay(item.comment);
 
-  const iconHeightPx = rowHeightPx > 0 ? Math.max(28, rowHeightPx - 6) : undefined;
-  const expandWidthPx = rowWidthPx > 0 ? rowWidthPx * 0.5 : 0;
-
-  const handleShellMouseLeave = (event: MouseEvent<HTMLDivElement>) => {
-    const shell = shellRef.current;
-    const related = event.relatedTarget;
-    if (shell && related instanceof Node && shell.contains(related)) {
-      return;
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
     }
-    setRailExpanded(false);
-  };
+  }, []);
+
+  const openComment = useCallback(() => {
+    clearCloseTimer();
+    if (showWorkComment) {
+      setCommentOpen(true);
+    }
+  }, [clearCloseTimer, showWorkComment]);
+
+  const scheduleCloseComment = useCallback(() => {
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(() => setCommentOpen(false), 120);
+  }, [clearCloseTimer]);
 
   return (
-    <div
-      ref={shellRef}
-      className={`doc-row-shell${railExpanded ? " doc-row-rail-expanded" : ""}`}
-      style={iconHeightPx ? ({ ["--doc-icon-h" as string]: `${iconHeightPx}px` } as CSSProperties) : undefined}
-      onMouseLeave={handleShellMouseLeave}
-    >
-      {showCommentRail ? (
-        <DocCommentRail commentText={commentText} expanded={railExpanded} expandWidthPx={expandWidthPx} />
-      ) : null}
+    <div className="doc-row-shell">
       <div
-        className={`doc-left-zone${showCommentRail ? " doc-left-zone-with-rail" : ""}`}
-        onMouseEnter={() => {
-          if (showCommentRail) {
-            setRailExpanded(true);
-          }
-        }}
+        className={`doc-icon-slot${showWorkComment ? " doc-icon-slot-has-comment" : ""}`}
+        onMouseEnter={openComment}
+        onMouseLeave={scheduleCloseComment}
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <DocumentTypeIcon docType={item.docType} deletionMark={item.deletionMark} signedSlots={signedSlots} />
+        <DocumentTypeIcon
+          docType={item.docType}
+          deletionMark={item.deletionMark}
+          signedSlots={signedSlots}
+          workComment={showWorkComment}
+        />
       </div>
+      <DocCommentPopover
+        open={commentOpen && showWorkComment}
+        text={commentText}
+        rowRef={rowRef}
+        onMouseEnter={openComment}
+        onMouseLeave={scheduleCloseComment}
+      />
       <div className="doc-cell-body">
         <div className="doc-line doc-line-head">
           <span className="doc-num-wrap">
@@ -106,3 +115,4 @@ export function DocCellView({ item, rowWidthPx, rowHeightPx, onCopied, onOpenMen
     </div>
   );
 }
+
