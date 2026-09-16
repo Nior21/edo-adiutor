@@ -12,7 +12,7 @@ import { useFloatingMenu } from "./FloatingMenu";
 
 import { useJsSpin } from "./useJsPulse";
 
-import type { EpdListItem } from "./types";
+import type { DetailField, EpdListItem } from "./types";
 
 
 
@@ -354,7 +354,37 @@ export function DocumentModal({
 
 
 
-      {item.diagnostics && item.diagnostics.length > 0 ? (
+      
+
+      {item.detailFields && item.detailFields.length > 0 ? (
+        <section className="modal-section">
+          <h3>Все реквизиты</h3>
+          {Array.from(
+            item.detailFields.reduce((groups, field) => {
+              const list = groups.get(field.group) ?? [];
+              list.push(field);
+              groups.set(field.group, list);
+              return groups;
+            }, new Map<string, DetailField[]>()),
+          ).map(([group, fields]) => (
+            <div key={group} className="modal-detail-group">
+              <h4 className="modal-subtitle">{group}</h4>
+              <dl className="details-grid">
+                {fields.map((field) => (
+                  <div className="details-grid-pair" key={`${group}-${field.label}-${field.value}`}>
+                    <dt>{field.label}</dt>
+                    <dd>
+                      <Copyable value={field.value} mono onCopied={onCopied} onOpenMenu={openFloatingMenu} />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+{item.diagnostics && item.diagnostics.length > 0 ? (
 
         <section className="modal-section modal-diagnostics">
 
@@ -417,4 +447,5 @@ export function DocumentModal({
   );
 
 }
+
 

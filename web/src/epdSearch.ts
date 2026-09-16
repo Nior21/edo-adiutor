@@ -20,12 +20,37 @@ export function itemDateKey(item: EpdListItem): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
+export function normalizeSearchKey(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/-/g, "")
+    .replace(/[{}]/g, "")
+    .replace(/\s+/g, "");
+}
+
 function partyHaystack(party: PartyCell): string {
-  return [party.name, party.inn, party.kpp, party.edoId].filter(Boolean).join(" ");
+  return [party.name, party.inn, party.kpp, party.edoId, party.entityRef ?? ""].filter(Boolean).join(" ");
+}
+
+function joinArray(values: string[] | undefined): string {
+  if (!values?.length) {
+    return "";
+  }
+  return values.join(" ");
 }
 
 export function buildSearchHaystack(item: EpdListItem): string {
   const parts = [
+    item.ref,
+    item.searchIndex,
+    item.organizationRef,
+    item.organizationEdoId,
+    item.uidMintrans,
+    item.otherRecipients,
+    joinArray(item.docFlowIds),
+    joinArray(item.edoDocumentRefs),
+    joinArray(item.partyEdoIds),
+    joinArray(item.titleFileIds),
     item.docType,
     item.docTypeName,
     item.number,
@@ -37,16 +62,31 @@ export function buildSearchHaystack(item: EpdListItem): string {
     item.deletionMark ? "удалён" : "",
     item.comment,
     commentTextForDisplay(item.comment),
+    item.waybillNumber,
     partyHaystack(item.shipper),
     partyHaystack(item.carrier),
     partyHaystack(item.consignee),
   ];
-  return parts.filter(Boolean).join(" ").toLowerCase();
+  return parts.filter(Boolean).join(" ");
+}
+
+function itemMatchesQuery(item: EpdListItem, query: string): boolean {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return true;
+  }
+  const haystack = buildSearchHaystack(item);
+  const hayLower = haystack.toLowerCase();
+  const qLower = trimmed.toLowerCase();
+  if (hayLower.includes(qLower)) {
+    return true;
+  }
+  const hayNorm = normalizeSearchKey(haystack);
+  const qNorm = normalizeSearchKey(trimmed);
+  return qNorm.length > 0 && hayNorm.includes(qNorm);
 }
 
 export function filterItems(items: EpdListItem[], query: string, selectedDays: Set<string>): EpdListItem[] {
-  const q = query.trim().toLowerCase();
-
   return items.filter((item) => {
     if (selectedDays.size > 0) {
       const key = itemDateKey(item);
@@ -54,10 +94,7 @@ export function filterItems(items: EpdListItem[], query: string, selectedDays: S
         return false;
       }
     }
-    if (!q) {
-      return true;
-    }
-    return buildSearchHaystack(item).includes(q);
+    return itemMatchesQuery(item, query);
   });
 }
 

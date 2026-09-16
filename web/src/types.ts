@@ -2,6 +2,12 @@ export type EdoExchangeStatus = "accepted" | "not_accepted" | "unknown" | "own" 
 
 export type PartyEntityKind = "organization" | "contragent" | "";
 
+export type DetailField = {
+  group: string;
+  label: string;
+  value: string;
+};
+
 export type PartyCell = {
   name: string;
   inn: string;
@@ -38,6 +44,14 @@ export type EpdListItem = {
   waybillDate?: string;
   titleDates?: Array<{ key: string; value: string }>;
   diagnostics?: string[];
+  searchIndex?: string;
+  docFlowIds?: string[];
+  edoDocumentRefs?: string[];
+  partyEdoIds?: string[];
+  titleFileIds?: string[];
+  otherRecipients?: string;
+  organizationEdoId?: string;
+  detailFields?: DetailField[];
 };
 
 export type ListMetaPayload = {
@@ -189,3 +203,4 @@ export type BridgeAction =
   | { action: "saveComment"; ref: string; docType: string; comment: string };
 
 export {};
+
