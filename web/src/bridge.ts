@@ -63,6 +63,10 @@ function buildHref(payload: BridgeAction): string {
     params.set("epfUrl", payload.epfUrl ?? "");
   }
 
+  if ("fileRef" in payload && payload.fileRef !== undefined) {
+    params.set("fileRef", payload.fileRef ?? "");
+  }
+
   return `onec:bridge?${params.toString()}`;
 }
 
@@ -100,6 +104,10 @@ export function requestListPage(offset: number, limit: number): void {
 
 export function requestEnrichRows(refs: string[]): void {
   call1C({ action: "enrichRows", refs: refs.join(",") });
+}
+
+export function requestDocumentXml(ref: string, docType: string, fileRef: string): void {
+  call1C({ action: "getDocumentXml", ref, docType, fileRef });
 }
 
 export function requestDocument(ref: string, docType: string): void {

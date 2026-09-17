@@ -12,6 +12,8 @@ import { useFloatingMenu } from "./FloatingMenu";
 
 
 import type { DetailField, EpdListItem } from "./types";
+import { fetchDocumentXml } from "./bridgeAsync";
+import { downloadBase64File } from "./downloadBase64";
 
 
 
@@ -33,6 +35,40 @@ type DocumentModalProps = {
 };
 
 
+
+
+function detailGroupOrder(group: string): number {
+  if (group.startsWith("Содержимое:")) {
+    return 0;
+  }
+  if (group === "Реквизиты титулов") {
+    return 1;
+  }
+  if (group === "ЭТрН" || group.startsWith("Груз")) {
+    return 2;
+  }
+  return 10;
+}
+
+function sortDetailGroups(entries: [string, DetailField[]][]): [string, DetailField[]][] {
+  return [...entries].sort((a, b) => {
+    const diff = detailGroupOrder(a[0]) - detailGroupOrder(b[0]);
+    return diff !== 0 ? diff : a[0].localeCompare(b[0], "ru");
+  });
+}
+
+function formatByteSize(size?: number): string {
+  if (!size || size <= 0) {
+    return "";
+  }
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
 
@@ -333,16 +369,59 @@ export function DocumentModal({
 
       
 
-      {item.detailFields && item.detailFields.length > 0 ? (
+      
+      {item.xmlFiles && item.xmlFiles.length > 0 ? (
         <section className="modal-section">
-          <h3>Все реквизиты</h3>
-          {Array.from(
-            item.detailFields.reduce((groups, field) => {
-              const list = groups.get(field.group) ?? [];
-              list.push(field);
-              groups.set(field.group, list);
-              return groups;
-            }, new Map<string, DetailField[]>()),
+          <h3>XML электронного документа</h3>
+          <ul className="xml-download-list">
+            {item.xmlFiles.map((file) => (
+              <li key={file.fileRef} className="xml-download-item">
+                <div>
+                  <div className="xml-download-label">{file.label}</div>
+                  <div className="xml-download-meta">
+                    {file.fileName}
+                    {formatByteSize(file.byteSize) ? ` · ${formatByteSize(file.byteSize)}` : ""}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    void (async () => {
+                      try {
+                        const payload = await fetchDocumentXml(item.ref, item.docType, file.fileRef);
+                        if (!payload.success || !payload.dataBase64) {
+                          onCopied(payload.error || "Не удалось получить XML");
+                          return;
+                        }
+                        downloadBase64File(payload.dataBase64, payload.fileName || file.fileName);
+                        onCopied(`Скачан ${payload.fileName || file.fileName}`);
+                      } catch (error) {
+                        onCopied(error instanceof Error ? error.message : "Ошибка загрузки XML");
+                      }
+                    })();
+                  }}
+                >
+                  Скачать XML
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+{item.detailFields && item.detailFields.length > 0 ? (
+        <section className="modal-section">
+          <h3>Данные документа</h3>
+          {sortDetailGroups(
+            Array.from(
+              item.detailFields.reduce((groups, field) => {
+                const list = groups.get(field.group) ?? [];
+                list.push(field);
+                groups.set(field.group, list);
+                return groups;
+              }, new Map<string, DetailField[]>()),
+            ),
           ).map(([group, fields]) => (
             <div key={group} className="modal-detail-group">
               <h4 className="modal-subtitle">{group}</h4>

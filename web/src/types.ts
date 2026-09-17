@@ -2,6 +2,20 @@ export type EdoExchangeStatus = "accepted" | "not_accepted" | "unknown" | "own" 
 
 export type PartyEntityKind = "organization" | "contragent" | "";
 
+export type XmlFileItem = {
+  fileRef: string;
+  label: string;
+  fileName: string;
+  byteSize?: number;
+};
+
+export type DocumentXmlPayload = {
+  success: boolean;
+  fileName: string;
+  dataBase64: string;
+  error?: string;
+};
+
 export type DetailField = {
   group: string;
   label: string;
@@ -52,6 +66,7 @@ export type EpdListItem = {
   otherRecipients?: string;
   organizationEdoId?: string;
   detailFields?: DetailField[];
+  xmlFiles?: XmlFileItem[];
 };
 
 export type ListMetaPayload = {
@@ -192,6 +207,7 @@ export type BridgeAction =
   | { action: "getListPage"; offset: string; limit: string }
   | { action: "enrichRows"; refs: string }
   | { action: "getDocument"; ref: string; docType: string }
+  | { action: "getDocumentXml"; ref: string; docType: string; fileRef: string }
   | { action: "openDocument"; ref: string; docType: string }
   | { action: "openCatalog"; ref: string }
   | { action: "openEdoSettings"; edoId: string; orgRef: string; entityRef?: string }

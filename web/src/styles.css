@@ -2528,3 +2528,32 @@ button:disabled {
 .status-quick-link:hover {
   opacity: 0.85;
 }
+
+.xml-download-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.xml-download-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-subtle, #ddd);
+  border-radius: 8px;
+}
+
+.xml-download-label {
+  font-weight: 600;
+}
+
+.xml-download-meta {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  word-break: break-all;
+}

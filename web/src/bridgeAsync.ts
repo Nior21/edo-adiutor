@@ -6,6 +6,7 @@ import {
   requestListMeta,
   requestListPage,
   requestRegistryList,
+  requestDocumentXml,
   yieldToBrowser,
 } from "./bridge";
 import type {
@@ -15,6 +16,7 @@ import type {
   ListMetaPayload,
   ListPagePayload,
   InitPayload,
+  DocumentXmlPayload,
 } from "./types";
 
 const BRIDGE_TIMEOUT_MS = 120_000;
@@ -50,6 +52,8 @@ function armPendingWithTimeout<T>(
 }
 
 
+const documentXmlSlot = { current: null as Pending<DocumentXmlPayload> | null };
+
 const listInitSlot = { current: null as Pending<InitPayload> | null };
 
 const metaSlot = { current: null as Pending<ListMetaPayload> | null };
@@ -83,6 +87,12 @@ export const bridgeAsync = {
   rejectListMeta(message: string): void {
     fail(metaSlot, message);
   },
+  resolveDocumentXml(payload: DocumentXmlPayload): void {
+    settle(documentXmlSlot, payload);
+  },
+  rejectDocumentXml(message: string): void {
+    fail(documentXmlSlot, message);
+  },
   resolveListInit(payload: InitPayload): void {
     settle(listInitSlot, payload);
   },
@@ -115,6 +125,13 @@ export const bridgeAsync = {
     fail(onlineIdsSlot, message);
   },
 };
+
+export async function fetchDocumentXml(ref: string, docType: string, fileRef: string): Promise<DocumentXmlPayload> {
+  const promise = armPendingWithTimeout(documentXmlSlot, "getDocumentXml", BRIDGE_TIMEOUT_MS);
+  await yieldToBrowser(16);
+  requestDocumentXml(ref, docType, fileRef);
+  return promise;
+}
 
 export async function fetchRegistryList(): Promise<InitPayload> {
   const promise = armPendingWithTimeout(listInitSlot, "getList", BRIDGE_TIMEOUT_MS);

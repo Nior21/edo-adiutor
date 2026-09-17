@@ -1,6 +1,7 @@
 type EdoBridgeCore = {
   init: (json: unknown) => void;
   setDocument: (json: unknown) => void;
+  setDocumentXml: (json: unknown) => void;
   setListMeta: (json: unknown) => void;
   setListPage: (json: unknown) => void;
   setEnrichRows: (json: unknown) => void;
@@ -15,6 +16,7 @@ declare global {
   interface Window {
     edoInit: (json: unknown) => void;
     edoSetDocument: (json: unknown) => void;
+    edoSetDocumentXml: (json: unknown) => void;
     edoSetListMeta: (json: unknown) => void;
     edoSetListPage: (json: unknown) => void;
     edoSetEnrichRows: (json: unknown) => void;
@@ -54,6 +56,7 @@ window.__edoBridgeRegister = (core) => {
 
 window.edoInit = (json) => enqueue("init", json);
 window.edoSetDocument = (json) => enqueue("setDocument", json);
+window.edoSetDocumentXml = (json) => enqueue("setDocumentXml", json);
 window.edoSetListMeta = (json) => enqueue("setListMeta", json);
 window.edoSetListPage = (json) => enqueue("setListPage", json);
 window.edoSetEnrichRows = (json) => enqueue("setEnrichRows", json);

@@ -8,6 +8,7 @@ import type {
   ListMetaPayload,
   ListPagePayload,
   UpdateInfoPayload,
+  DocumentXmlPayload,
 } from "./types";
 
 function normalizeEpdListItem(item: EpdListItem): EpdListItem {
@@ -254,4 +255,16 @@ export function parseDocumentPayload(value: unknown): { item: EpdListItem | null
     return { item: null, error: "Некорректная структура документа" };
   }
   return { item: normalizeEpdListItem(payload as EpdListItem), error: "" };
+}
+
+
+export function parseDocumentXmlPayload(value: unknown): DocumentXmlPayload {
+  const fallback: DocumentXmlPayload = { success: false, fileName: "", dataBase64: "", error: "Пустой ответ" };
+  const parsed = parseJsonValue<Partial<DocumentXmlPayload>>(value, fallback);
+  return {
+    success: Boolean(parsed.success),
+    fileName: String(parsed.fileName ?? ""),
+    dataBase64: String(parsed.dataBase64 ?? ""),
+    error: parsed.error ? String(parsed.error) : undefined,
+  };
 }

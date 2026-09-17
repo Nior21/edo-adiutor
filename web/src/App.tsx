@@ -26,6 +26,7 @@ import { UpdateOfferModal } from "./UpdateOfferModal";
 import { daysWithItems, filterItems, loadStoredDays, loadStoredQuery } from "./epdSearch";
 import {
   parseDocumentPayload,
+  parseDocumentXmlPayload,
   parseEdoDiagnosticsPayload,
   parseEdoOnlineIdsPayload,
   parseInitPayload,
@@ -428,6 +429,9 @@ export default function App() {
             setModuleVersion(payload.currentVersion);
           }
         }
+      },
+      setDocumentXml: (json: unknown) => {
+        bridgeAsync.resolveDocumentXml(parseDocumentXmlPayload(json));
       },
       setDocument: (json: unknown) => {
         const { item, error } = parseDocumentPayload(json);
