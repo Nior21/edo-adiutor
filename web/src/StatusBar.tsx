@@ -9,6 +9,7 @@ type StatusBarProps = {
   moduleVersion?: string;
   versionMismatch?: boolean;
   loadProgress: ListLoadProgress | null;
+  docLoadingHint?: string;
   updateChecking: boolean;
   updateAvailable: boolean;
   updateTargetVersion?: string;
@@ -29,6 +30,7 @@ export function StatusBar({
   moduleVersion,
   versionMismatch,
   loadProgress,
+  docLoadingHint,
   updateChecking,
   updateAvailable,
   updateTargetVersion,
@@ -43,6 +45,7 @@ export function StatusBar({
 }: StatusBarProps) {
   const isError = toast?.kind === "error";
   const loading = isLoadActive(loadProgress);
+  const docLoading = Boolean(docLoadingHint);
   const percent = loadProgress ? loadProgressPercent(loadProgress) : 0;
   const loadLabel = loadProgress ? loadProgressLabel(loadProgress) : "";
   const hasSelection = selectionCount > 0;
@@ -52,6 +55,9 @@ export function StatusBar({
   if (updateChecking) {
     message = "Проверка обновлений…";
     messageClass = "status-bar-info";
+  } else if (docLoading) {
+    message = docLoadingHint!;
+    messageClass = "status-bar-load-text";
   } else if (loading) {
     message = loadLabel;
     messageClass = "status-bar-load-text";
@@ -106,11 +112,11 @@ export function StatusBar({
 
   return (
     <footer
-      className={`status-bar ${loading || updateChecking ? "status-bar-loading" : toast ? "status-bar-active" : hasSelection ? "status-bar-selection" : "status-bar-hint"}`}
+      className={`status-bar ${loading || docLoading || updateChecking ? "status-bar-loading" : toast ? "status-bar-active" : hasSelection ? "status-bar-selection" : "status-bar-hint"}`}
       role="status"
     >
       <div className="status-bar-body">
-        {loading && !updateChecking ? (
+        {(loading || docLoading) && !updateChecking ? (
           <>
             <span className={`status-bar-message ${messageClass}`}>{message}</span>
             <div className="status-load-track" aria-hidden="true">

@@ -1,5 +1,5 @@
 {
-  "version": "0.6.2",
-  "epfUrl": "https://example.com/dist/ПомощникДляЭДО.epf",
-  "notes": "Релизы в bin/releases/{version}; якорный .epf не перезаписывается — открывается новое окно."
+  "version": "0.8.33",
+  "epfUrl": "https://github.com/Nior21/edo-adiutor/releases/download/v0.8.33/EdoAdiutor.epf",
+  "notes": "Обновление через бейдж; быстрый реестр; карточка в статусбаре"
 }

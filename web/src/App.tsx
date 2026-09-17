@@ -28,7 +28,6 @@ import {
   parseDocumentPayload,
   parseEdoDiagnosticsPayload,
   parseEdoOnlineIdsPayload,
-  parseEnrichRowsPayload,
   parseInitPayload,
   parseListMetaPayload,
   parseListPagePayload,
@@ -76,7 +75,6 @@ export default function App() {
   const updateInProgress = useRef(false);
 
   const listBusy = isLoadActive(loadProgress) || refreshActive;
-  const enrichingRef = loadProgress?.enrichingRef ?? null;
   const superseded = updateInfo?.uiMode === "superseded" || updateInfo?.phase === "superseded";
 
   const versionMismatch = useMemo(() => {
@@ -160,9 +158,7 @@ export default function App() {
       phase: "meta",
       loaded: 0,
       total: 0,
-      enriched: 0,
       fetchingRow: false,
-      enrichingRef: null,
     });
 
       void loadRegistryPaginated({
@@ -179,23 +175,6 @@ export default function App() {
         onAppendPage: (pageItems) => {
           setItems((prev) => [...prev, ...pageItems]);
         },
-      onEnrichBatch: (updates) => {
-        setItems((prev) =>
-          prev.map((item) => {
-            const update = updates.find((row) => row.ref === item.ref);
-            if (!update) {
-              return item;
-            }
-            return {
-              ...item,
-              shipper: update.shipper,
-              carrier: update.carrier,
-              consignee: update.consignee,
-              partiesPending: false,
-            };
-          }),
-        );
-      },
       onError: (message) => {
         setLoadProgress(null);
         setRefreshActive(false);
@@ -269,9 +248,7 @@ export default function App() {
           phase: "meta",
           loaded: 0,
           total: 0,
-          enriched: 0,
           fetchingRow: false,
-          enrichingRef: null,
         });
         setRefreshActive(true);
         void loadRegistryPaginated({
@@ -286,24 +263,7 @@ export default function App() {
             }
           },
           onAppendPage: (pageItems) => setItems((prev) => [...prev, ...pageItems]),
-          onEnrichBatch: (updates) => {
-            setItems((prev) =>
-              prev.map((item) => {
-                const update = updates.find((row) => row.ref === item.ref);
-                if (!update) {
-                  return item;
-                }
-                return {
-                  ...item,
-                  shipper: update.shipper,
-                  carrier: update.carrier,
-                  consignee: update.consignee,
-                  partiesPending: false,
-                };
-              }),
-            );
-          },
-          onError: (message) => {
+              onError: (message) => {
             setLoadProgress(null);
             setRefreshActive(false);
             showToast(message, "error");
@@ -723,7 +683,6 @@ export default function App() {
                   item={item}
                   active={item.ref === modalRef}
                   selected={selectedRefs.has(item.ref)}
-                  enrichingEdo={enrichingRef === item.ref}
                   getMenuEntries={getMenuEntries}
                   onRowClick={handleRowClick}
                   onCopied={handleCopied}
@@ -756,6 +715,7 @@ export default function App() {
         moduleVersion={moduleVersion}
         versionMismatch={versionMismatch}
         loadProgress={loadProgress}
+        docLoadingHint={docLoading ? "Загрузка карточки документа…" : undefined}
         updateChecking={updateChecking}
         updateAvailable={effectiveUpdate.available && !superseded}
         updateTargetVersion={effectiveUpdate.target}
@@ -767,7 +727,6 @@ export default function App() {
       <DocumentModal
         open={Boolean(modalRef && modalItem)}
         item={modalItem}
-        loading={docLoading}
         commentDraft={commentDraft}
         onCommentChange={setCommentDraft}
         onClose={closeModal}

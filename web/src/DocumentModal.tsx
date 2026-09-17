@@ -10,7 +10,6 @@ import { ModalPortal } from "./ModalPortal";
 
 import { useFloatingMenu } from "./FloatingMenu";
 
-import { useJsSpin } from "./useJsPulse";
 
 import type { DetailField, EpdListItem } from "./types";
 
@@ -22,7 +21,6 @@ type DocumentModalProps = {
 
   item: EpdListItem | null;
 
-  loading: boolean;
 
   commentDraft: string;
 
@@ -50,7 +48,6 @@ export function DocumentModal({
 
   item,
 
-  loading,
 
   commentDraft,
 
@@ -62,7 +59,6 @@ export function DocumentModal({
 
 }: DocumentModalProps) {
 
-  const spinAngle = useJsSpin(loading);
 
   const { openAt: openFloatingMenu, portal: floatingMenuPortal } = useFloatingMenu();
 
@@ -114,25 +110,6 @@ export function DocumentModal({
 
 
 
-      {loading ? (
-
-        <div className="modal-loading">
-
-          <div
-
-            className="modal-loading-spinner modal-loading-spinner-css"
-
-            aria-hidden="true"
-
-            style={{ transform: `rotate(${spinAngle}deg)` }}
-
-          />
-
-          <p>Обновление деталей документа…</p>
-
-        </div>
-
-      ) : null}
 
 
 
