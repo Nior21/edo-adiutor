@@ -4,6 +4,7 @@ import type { EpdListItem, PartyCell } from "./types";
 
 const LS_QUERY = "pomoshchnik-edo-query";
 const LS_DAYS = "pomoshchnik-edo-days";
+const LS_SHOW_ALL = "pomoshchnik-edo-show-all";
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -141,6 +142,22 @@ export function loadStoredDays(): Set<string> {
 export function saveStoredDays(days: Set<string>): void {
   try {
     localStorage.setItem(LS_DAYS, JSON.stringify([...days].sort()));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadStoredShowAll(): boolean {
+  try {
+    return localStorage.getItem(LS_SHOW_ALL) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function saveStoredShowAll(showAll: boolean): void {
+  try {
+    localStorage.setItem(LS_SHOW_ALL, showAll ? "1" : "0");
   } catch {
     /* ignore */
   }

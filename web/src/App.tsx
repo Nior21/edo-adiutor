@@ -8,7 +8,7 @@ import {
   requestOpenRelease,
   requestPickAndOpenEpf,
 } from "./bridge";
-import { bridgeAsync } from "./bridgeAsync";
+import { bridgeAsync, fetchDocumentDetail } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
 import { EpdTableRow } from "./EpdTableRow";
@@ -23,7 +23,15 @@ import { buildRowsCopyPreview, buildRowsCopyText } from "./rowCopyText";
 import { StatusBar } from "./StatusBar";
 import { TableSubhead } from "./TableSubhead";
 import { UpdateOfferModal } from "./UpdateOfferModal";
-import { daysWithItems, filterItems, loadStoredDays, loadStoredQuery } from "./epdSearch";
+import { isEpdRowInactive } from "./epdRowState";
+import {
+  daysWithItems,
+  filterItems,
+  loadStoredDays,
+  loadStoredQuery,
+  loadStoredShowAll,
+  saveStoredShowAll,
+} from "./epdSearch";
 import {
   parseDocumentPayload,
   parseDocumentXmlPayload,
@@ -59,6 +67,7 @@ export default function App() {
   const [loadProgress, setLoadProgress] = useState<ListLoadProgress | null>(null);
   const [query, setQuery] = useState(loadStoredQuery);
   const [selectedDays, setSelectedDays] = useState<Set<string>>(() => loadStoredDays());
+  const [showAllRows, setShowAllRows] = useState(() => loadStoredShowAll());
   const [modalRef, setModalRef] = useState<string>("");
   const [modalDoc, setModalDoc] = useState<EpdListItem | null>(null);
   const [docLoading, setDocLoading] = useState(false);
@@ -103,10 +112,13 @@ export default function App() {
 
   const daysWithData = useMemo(() => daysWithItems(items), [items]);
 
-  const visibleItems = useMemo(
-    () => filterItems(items, query, selectedDays),
-    [items, query, selectedDays],
-  );
+  const visibleItems = useMemo(() => {
+    const filtered = filterItems(items, query, selectedDays);
+    if (showAllRows) {
+      return filtered;
+    }
+    return filtered.filter((item) => !isEpdRowInactive(item));
+  }, [items, query, selectedDays, showAllRows]);
 
   const metaText = useMemo(() => {
     if (isLoadActive(loadProgress) && loadProgress && loadProgress.total > 0) {
@@ -282,9 +294,13 @@ export default function App() {
       if (
         value.startsWith("Скачан:") ||
         value.startsWith("Файл сохранён:") ||
-        value.startsWith("Загрузки:")
+        value.startsWith("Файл «") ||
+        value.startsWith("Загрузки:") ||
+        value.includes("не удалось") ||
+        value.includes("нет XML")
       ) {
-        showToast(value);
+        const isError = value.includes("не удалось") || value.includes("нет XML");
+        showToast(value, isError ? "error" : "info", isError ? undefined : 14000);
         return;
       }
       const preview = value.length > 48 ? `${value.slice(0, 48)}…` : value;
@@ -293,12 +309,37 @@ export default function App() {
     [showToast],
   );
 
-  const mergeItem = useCallback((payload: EpdListItem) => {
-    setItems((prev) => prev.map((item) => (item.ref === payload.ref ? { ...item, ...payload } : item)));
-    setModalDoc(payload);
-    setCommentDraft(payload.comment ?? "");
-    setDocLoading(false);
+  const applyDocumentPayload = useCallback(
+    (payload: EpdListItem) => {
+      setItems((prev) => prev.map((item) => (item.ref === payload.ref ? { ...item, ...payload } : item)));
+      if (modalRef === payload.ref) {
+        setModalDoc(payload);
+        setCommentDraft(payload.comment ?? "");
+        setDocLoading(false);
+      }
+    },
+    [modalRef],
+  );
+
+  const handleShowAllRowsChange = useCallback((value: boolean) => {
+    setShowAllRows(value);
+    saveStoredShowAll(value);
   }, []);
+
+  const handleXmlSavedMessage = useCallback(
+    (message: string) => {
+      if (message === "Сохранение отменено") {
+        return;
+      }
+      const isError =
+        message.includes("не удалось") ||
+        message.includes("Ошибка") ||
+        message.includes("недоступ") ||
+        message.includes("нет XML");
+      showToast(message, isError ? "error" : "info", 14000);
+    },
+    [showToast],
+  );
 
   useEffect(() => {
     if (!updateChecking) {
@@ -445,12 +486,14 @@ export default function App() {
         const { item, error } = parseDocumentPayload(json);
         if (!item) {
           setDocLoading(false);
+          bridgeAsync.rejectDocumentDetail(error || "Документ не найден");
           if (error) {
             showToast(error, "error");
           }
           return;
         }
-        mergeItem(item);
+        bridgeAsync.resolveDocumentDetail(item);
+        applyDocumentPayload(item);
       },
       setStatus: (message: string) => {
         if (message === "Подключено") {
@@ -478,7 +521,7 @@ export default function App() {
       cancelListLoad();
       window.__edoBridgeRegister(undefined);
     };
-  }, [beginDataLoadIfNeeded, handleUpdateCheckPayload, mergeItem, showToast]);
+  }, [applyDocumentPayload, beginDataLoadIfNeeded, handleUpdateCheckPayload, showToast]);
 
   const openModal = (ref: string) => {
     const row = visibleItems.find((item) => item.ref === ref) ?? items.find((item) => item.ref === ref);
@@ -513,8 +556,12 @@ export default function App() {
     () => ({
       onCopied: handleCopied,
       onSaveComment: applyCommentLocal,
+      xmlSave: {
+        fetchDocumentDetail,
+        onSavedMessage: handleXmlSavedMessage,
+      },
     }),
-    [applyCommentLocal, handleCopied],
+    [applyCommentLocal, handleCopied, handleXmlSavedMessage],
   );
 
   const resolveMenuSelection = useCallback(
@@ -707,7 +754,11 @@ export default function App() {
               {!listBusy && !updateChecking && visibleItems.length === 0 && dataLoadStarted.current && (
                 <tr>
                   <td colSpan={5} className="muted center">
-                    {items.length === 0 ? "В реестре ЭПД нет документов." : "Нет документов за выбранные условия."}
+                    {items.length === 0
+                      ? "В реестре ЭПД нет документов."
+                      : !showAllRows && items.some((item) => !isEpdRowInactive(item))
+                        ? "Нет документов в работе — включите «показывать все» внизу или измените фильтр."
+                        : "Нет документов за выбранные условия."}
                   </td>
                 </tr>
               )}
@@ -735,6 +786,8 @@ export default function App() {
         updateAvailable={effectiveUpdate.available && !superseded}
         updateTargetVersion={effectiveUpdate.target}
         updateError={updateInfo?.error}
+        showAll={showAllRows}
+        onShowAllChange={handleShowAllRowsChange}
         onAboutOpen={() => setAboutOpen(true)}
         onVersionClick={superseded ? undefined : handleVersionBadgeClick}
       />

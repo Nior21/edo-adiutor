@@ -14,6 +14,8 @@ export type DocumentXmlPayload = {
   fileName: string;
   dataBase64: string;
   savedOnClient?: boolean;
+  savedPath?: string;
+  cancelled?: boolean;
   error?: string;
 };
 

@@ -4,10 +4,12 @@ import { setCommentWorkTag } from "./commentWorkTag";
 import type { FloatingMenuEntry } from "./FloatingMenu";
 import { buildRowCopyPreview, buildRowCopyText, buildRowsCopyPreview, buildRowsCopyText } from "./rowCopyText";
 import type { EpdListItem } from "./types";
+import { buildXmlSaveContextMenuEntries, type XmlSaveMenuActions } from "./xmlSaveContextMenu";
 
 export type RowMenuActions = {
   onCopied: (value: string) => void;
   onSaveComment: (item: EpdListItem, comment: string) => void;
+  xmlSave?: XmlSaveMenuActions;
 };
 
 function heading(id: string, label: string): FloatingMenuEntry {
@@ -86,6 +88,12 @@ export function buildRowContextMenuEntries(
     label: flagged ? "Снять метку [!]" : "В фокус — метка [!]",
     onSelect: attentionItems([row], !flagged, actions.onSaveComment),
   });
+
+  if (actions.xmlSave) {
+    entries.push({ id: "xml-sep", kind: "heading", label: "Файлы" });
+    entries.push(...buildXmlSaveContextMenuEntries(row, actions.xmlSave));
+  }
+
   return entries;
 }
 

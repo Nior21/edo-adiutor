@@ -266,6 +266,8 @@ export function parseDocumentXmlPayload(value: unknown): DocumentXmlPayload {
     fileName: String(parsed.fileName ?? ""),
     dataBase64: String(parsed.dataBase64 ?? ""),
     savedOnClient: parsed.savedOnClient === true,
+    savedPath: parsed.savedPath ? String(parsed.savedPath) : undefined,
+    cancelled: parsed.cancelled === true,
     error: parsed.error ? String(parsed.error) : undefined,
   };
 }

@@ -21,6 +21,8 @@ type StatusBarProps = {
   onUnflagSelection?: () => void;
   onAboutOpen: () => void;
   onVersionClick?: () => void;
+  showAll?: boolean;
+  onShowAllChange?: (value: boolean) => void;
 };
 
 export function StatusBar({
@@ -42,6 +44,8 @@ export function StatusBar({
   onUnflagSelection,
   onAboutOpen,
   onVersionClick,
+  showAll = true,
+  onShowAllChange,
 }: StatusBarProps) {
   const isError = toast?.kind === "error";
   const loading = isLoadActive(loadProgress);
@@ -147,6 +151,16 @@ export function StatusBar({
       </div>
 
       <div className="status-bar-tools">
+        {onShowAllChange ? (
+          <label className="status-show-all" title="Показывать проведённые, завершённые и помеченные на удаление">
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={(event) => onShowAllChange(event.target.checked)}
+            />
+            показывать все
+          </label>
+        ) : null}
         {onVersionClick ? (
           <button type="button" className={badgeClass} title={badgeTitle} onClick={onVersionClick}>
             {badgeLabel}

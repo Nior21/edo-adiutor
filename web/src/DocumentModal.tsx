@@ -12,8 +12,7 @@ import { useFloatingMenu } from "./FloatingMenu";
 
 
 import type { DetailField, EpdListItem } from "./types";
-import { fetchDocumentXml, saveDocumentXmlFile } from "./bridgeAsync";
-import { downloadBase64File } from "./downloadBase64";
+import { saveXmlFileForDocument, saveXmlToastMessage } from "./saveXmlFile";
 
 
 
@@ -388,31 +387,16 @@ export function DocumentModal({
                   className="btn btn-secondary btn-sm"
                   onClick={() => {
                     void (async () => {
-                      try {
-                        const savePayload = await saveDocumentXmlFile(item.ref, item.docType, file.fileRef);
-                        if (savePayload.success && savePayload.savedOnClient) {
-                          onCopied(`Файл сохранён: ${savePayload.fileName || file.fileName}`);
-                          return;
-                        }
-                        const payload =
-                          savePayload.success && savePayload.dataBase64
-                            ? savePayload
-                            : await fetchDocumentXml(item.ref, item.docType, file.fileRef);
-                        if (!payload.success || !payload.dataBase64) {
-                          onCopied(payload.error || savePayload.error || "Не удалось получить XML");
-                          return;
-                        }
-                        downloadBase64File(payload.dataBase64, payload.fileName || file.fileName);
-                        onCopied(
-                          `Загрузки: «${payload.fileName || file.fileName}» — обычно папка «Загрузки» браузера (в веб-клиенте 1С диалог «Сохранить как» может быть недоступен)`,
-                        );
-                      } catch (error) {
-                        onCopied(error instanceof Error ? error.message : "Ошибка загрузки XML");
+                      const outcome = await saveXmlFileForDocument(item.ref, item.docType, file);
+                      const message = saveXmlToastMessage(outcome);
+                      if (outcome.kind === "error" && message === "Сохранение отменено") {
+                        return;
                       }
+                      onCopied(message);
                     })();
                   }}
                 >
-                  Скачать XML
+                  Сохранить как…
                 </button>
               </li>
             ))}

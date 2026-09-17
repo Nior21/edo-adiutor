@@ -6,6 +6,7 @@ import { PartyCellView } from "./PartyCellView";
 import { RowContextMenu, type RowContextMenuHandle } from "./RowContextMenu";
 import { useDocCommentPopover } from "./useDocCommentPopover";
 import type { FloatingMenuEntry } from "./FloatingMenu";
+import { isEpdRowInactive } from "./epdRowState";
 import type { EpdListItem } from "./types";
 
 type EpdTableRowProps = {
@@ -46,8 +47,10 @@ export function EpdTableRow({
     event.stopPropagation();
   };
 
+  const inactive = isEpdRowInactive(item);
   const rowClass = [
     item.deletionMark ? "row-deleted" : "",
+    inactive ? "row-inactive" : "",
     active ? "row-active" : "",
     selected ? "row-selected" : "",
     showWorkComment ? "row-has-work-comment" : "",
