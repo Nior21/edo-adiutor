@@ -1,5 +1,5 @@
 {
-  "version": "0.8.34",
-  "epfUrl": "https://github.com/Nior21/edo-adiutor/releases/download/v0.8.34/EdoAdiutor.epf",
-  "notes": "Hotfix компиляции формы"
+  "version": "0.8.35",
+  "epfUrl": "https://github.com/Nior21/edo-adiutor/releases/download/v0.8.35/EdoAdiutor.epf",
+  "notes": "Sanitize GitHub release text for web client"
 }
