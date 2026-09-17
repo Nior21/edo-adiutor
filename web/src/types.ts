@@ -19,10 +19,31 @@ export type DocumentXmlPayload = {
   error?: string;
 };
 
+export type DetailFieldValueKind =
+  | "string"
+  | "number"
+  | "boolean"
+  | "date"
+  | "reference"
+  | "complex"
+  | "readonly";
+
+export function isSimpleDetailFieldKind(kind: DetailFieldValueKind): boolean {
+  return kind === "string" || kind === "number" || kind === "boolean" || kind === "date";
+}
+
 export type DetailField = {
   group: string;
   label: string;
   value: string;
+  fieldId?: string;
+  valueKind?: DetailFieldValueKind;
+  editable?: boolean;
+};
+
+export type SaveDocumentFieldResult = {
+  success: boolean;
+  error?: string;
 };
 
 export type PartyCell = {
@@ -219,7 +240,8 @@ export type BridgeAction =
   | { action: "getEdoDiagnosticsLocal"; orgRef: string; entityRef: string; edoId?: string }
   | { action: "getEdoDiagnosticsOnline"; orgRef: string; entityRef: string; edoId?: string }
   | { action: "openEdoTransportSettings"; orgRef: string; entityRef: string; edoId?: string }
-  | { action: "saveComment"; ref: string; docType: string; comment: string };
+  | { action: "saveComment"; ref: string; docType: string; comment: string }
+  | { action: "saveDocumentField"; ref: string; docType: string; fieldId: string; value: string };
 
 export {};
 

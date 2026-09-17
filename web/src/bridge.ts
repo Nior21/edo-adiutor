@@ -67,6 +67,14 @@ function buildHref(payload: BridgeAction): string {
     params.set("fileRef", payload.fileRef ?? "");
   }
 
+  if ("fieldId" in payload && payload.fieldId !== undefined) {
+    params.set("fieldId", payload.fieldId ?? "");
+  }
+
+  if ("value" in payload && payload.value !== undefined) {
+    params.set("value", payload.value ?? "");
+  }
+
   return `onec:bridge?${params.toString()}`;
 }
 
@@ -120,6 +128,15 @@ export function requestDocument(ref: string, docType: string): void {
 
 export function saveComment(ref: string, docType: string, comment: string): void {
   call1C({ action: "saveComment", ref, docType, comment });
+}
+
+export function requestSaveDocumentField(
+  ref: string,
+  docType: string,
+  fieldId: string,
+  value: string,
+): void {
+  call1C({ action: "saveDocumentField", ref, docType, fieldId, value });
 }
 
 export function openDocument(ref: string, docType: string): void {

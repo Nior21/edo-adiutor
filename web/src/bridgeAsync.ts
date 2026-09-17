@@ -8,6 +8,7 @@ import { requestSaveDocumentXml,
   requestRegistryList,
   requestDocument,
   requestDocumentXml,
+  requestSaveDocumentField,
   yieldToBrowser,
 } from "./bridge";
 import type {
@@ -19,6 +20,7 @@ import type {
   InitPayload,
   DocumentXmlPayload,
   EpdListItem,
+  SaveDocumentFieldResult,
 } from "./types";
 
 const BRIDGE_TIMEOUT_MS = 120_000;
@@ -56,6 +58,7 @@ function armPendingWithTimeout<T>(
 
 const documentXmlSlot = { current: null as Pending<DocumentXmlPayload> | null };
 const documentDetailSlot = { current: null as Pending<EpdListItem> | null };
+const saveFieldSlot = { current: null as Pending<SaveDocumentFieldResult> | null };
 
 const listInitSlot = { current: null as Pending<InitPayload> | null };
 
@@ -102,6 +105,12 @@ export const bridgeAsync = {
   rejectDocumentDetail(message: string): void {
     fail(documentDetailSlot, message);
   },
+  resolveSaveDocumentField(payload: SaveDocumentFieldResult): void {
+    settle(saveFieldSlot, payload);
+  },
+  rejectSaveDocumentField(message: string): void {
+    fail(saveFieldSlot, message);
+  },
   resolveListInit(payload: InitPayload): void {
     settle(listInitSlot, payload);
   },
@@ -145,6 +154,17 @@ export async function fetchDocumentXml(ref: string, docType: string, fileRef: st
   const promise = armPendingWithTimeout(documentXmlSlot, "getDocumentXml", BRIDGE_TIMEOUT_MS);
   await yieldToBrowser(16);
   requestDocumentXml(ref, docType, fileRef);
+  return promise;
+}
+
+export async function saveDocumentField(
+  ref: string,
+  docType: string,
+  fieldId: string,
+  value: string,
+): Promise<SaveDocumentFieldResult> {
+  const promise = armPendingWithTimeout(saveFieldSlot, "saveDocumentField", BRIDGE_TIMEOUT_MS);
+  requestSaveDocumentField(ref, docType, fieldId, value);
   return promise;
 }
 

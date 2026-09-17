@@ -9,12 +9,42 @@ import type {
   ListPagePayload,
   UpdateInfoPayload,
   DocumentXmlPayload,
+  DetailField,
+  DetailFieldValueKind,
+  SaveDocumentFieldResult,
 } from "./types";
 
+const DETAIL_VALUE_KINDS: DetailFieldValueKind[] = [
+  "string",
+  "number",
+  "boolean",
+  "date",
+  "reference",
+  "complex",
+  "readonly",
+];
+
+function normalizeDetailField(field: DetailField): DetailField {
+  const rawKind = field.valueKind;
+  const valueKind = DETAIL_VALUE_KINDS.includes(rawKind as DetailFieldValueKind)
+    ? (rawKind as DetailFieldValueKind)
+    : "readonly";
+  return {
+    group: field.group ?? "",
+    label: field.label ?? "",
+    value: field.value ?? "",
+    fieldId: field.fieldId,
+    valueKind,
+    editable: field.editable === true,
+  };
+}
+
 function normalizeEpdListItem(item: EpdListItem): EpdListItem {
+  const detailFields = item.detailFields?.map((field) => normalizeDetailField(field));
   return {
     ...item,
     comment: normalizeCommentRaw(item.comment),
+    detailFields,
   };
 }
 
@@ -257,6 +287,14 @@ export function parseDocumentPayload(value: unknown): { item: EpdListItem | null
   return { item: normalizeEpdListItem(payload as EpdListItem), error: "" };
 }
 
+
+export function parseSaveDocumentFieldPayload(value: unknown): SaveDocumentFieldResult {
+  const parsed = parseJsonValue<Partial<SaveDocumentFieldResult>>(value, { success: false, error: "Пустой ответ" });
+  return {
+    success: parsed.success === true,
+    error: parsed.error ? String(parsed.error) : undefined,
+  };
+}
 
 export function parseDocumentXmlPayload(value: unknown): DocumentXmlPayload {
   const fallback: DocumentXmlPayload = { success: false, fileName: "", dataBase64: "", error: "Пустой ответ" };

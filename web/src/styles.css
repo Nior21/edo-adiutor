@@ -1026,6 +1026,94 @@ body.modal-open {
   word-break: break-word;
 }
 
+.clamped-copyable {
+  display: block;
+  position: relative;
+}
+
+.clamped-copyable-value {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.clamped-copyable-expanded .clamped-copyable-value {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.clamped-copyable-more,
+.clamped-copyable-collapse {
+  display: inline;
+  margin-left: 4px;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.clamped-copyable-inner.copyable {
+  display: inline;
+}
+
+.detail-field-edit-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-field-input {
+  width: 100%;
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid #b2c8ea;
+  border-radius: 8px;
+}
+
+.detail-field-input-error {
+  border-color: #f04438;
+}
+
+.detail-field-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-field-inline-error {
+  font-size: 0.82rem;
+  color: #b42318;
+  background: #fef3f2;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.detail-field-empty-editable {
+  cursor: context-menu;
+}
+
+.complex-field-stub-text {
+  margin: 0 0 12px;
+  color: #475467;
+  line-height: 1.45;
+}
+
+.complex-field-stub-meta {
+  margin: 0 0 16px;
+  font-size: 0.82rem;
+  color: #667085;
+}
+
+.modal-card-narrow {
+  width: min(520px, calc(100vw - 48px));
+  max-width: 520px;
+}
+
 .status-row {
   display: flex;
   flex-wrap: wrap;

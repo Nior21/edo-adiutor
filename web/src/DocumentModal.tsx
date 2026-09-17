@@ -11,6 +11,7 @@ import { ModalPortal } from "./ModalPortal";
 import { useFloatingMenu } from "./FloatingMenu";
 
 
+import { DetailFieldRow } from "./DetailFieldRow";
 import type { DetailField, EpdListItem } from "./types";
 import { saveXmlFileForDocument, saveXmlToastMessage } from "./saveXmlFile";
 
@@ -30,6 +31,12 @@ type DocumentModalProps = {
   onClose: () => void;
 
   onCopied: (value: string) => void;
+
+  onSaveField: (
+    item: EpdListItem,
+    field: DetailField,
+    nextValue: string,
+  ) => Promise<{ ok: boolean; error?: string }>;
 
 };
 
@@ -91,6 +98,8 @@ export function DocumentModal({
   onClose,
 
   onCopied,
+
+  onSaveField,
 
 }: DocumentModalProps) {
 
@@ -424,7 +433,12 @@ export function DocumentModal({
                   <div className="details-grid-pair" key={`${group}-${field.label}-${field.value}`}>
                     <dt>{field.label}</dt>
                     <dd>
-                      <Copyable value={field.value} mono onCopied={onCopied} onOpenMenu={openFloatingMenu} />
+                      <DetailFieldRow
+                        field={field}
+                        onCopied={onCopied}
+                        onOpenMenu={openFloatingMenu}
+                        onSaveField={(f, next) => onSaveField(item, f, next)}
+                      />
                     </dd>
                   </div>
                 ))}

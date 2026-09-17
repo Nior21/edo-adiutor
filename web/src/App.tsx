@@ -8,7 +8,7 @@ import {
   requestOpenRelease,
   requestPickAndOpenEpf,
 } from "./bridge";
-import { bridgeAsync, fetchDocumentDetail } from "./bridgeAsync";
+import { bridgeAsync, fetchDocumentDetail, saveDocumentField } from "./bridgeAsync";
 import { AboutModal } from "./AboutModal";
 import { DocumentModal } from "./DocumentModal";
 import { EpdTableRow } from "./EpdTableRow";
@@ -35,6 +35,7 @@ import {
 import {
   parseDocumentPayload,
   parseDocumentXmlPayload,
+  parseSaveDocumentFieldPayload,
   parseEdoDiagnosticsPayload,
   parseEdoOnlineIdsPayload,
   parseInitPayload,
@@ -49,7 +50,7 @@ import { cancelListLoad, loadRegistryPaginated, type ListLoadProgress } from "./
 import { useToast } from "./useToast";
 import { UI_BUILD_VERSION } from "./buildVersion";
 import { compareSemver } from "./semverCompare";
-import type { EpdListItem, UpdateInfoPayload, VersionCatalogItem } from "./types";
+import type { DetailField, EpdListItem, UpdateInfoPayload, VersionCatalogItem } from "./types";
 
 const TABLE_HINT =
   "Клик — карточка. Ctrl/Shift — выделение строк. ПКМ — меню. [!] — метка «в фокус» в комментарии.";
@@ -326,6 +327,27 @@ export default function App() {
     saveStoredShowAll(value);
   }, []);
 
+  const handleSaveDetailField = useCallback(
+    async (item: EpdListItem, field: DetailField, nextValue: string) => {
+      if (!field.fieldId) {
+        return { ok: false, error: "Поле не поддерживает сохранение" };
+      }
+      try {
+        const result = await saveDocumentField(item.ref, item.docType, field.fieldId, nextValue);
+        if (!result.success) {
+          return { ok: false, error: result.error || "1С отклонила запись" };
+        }
+        showToast("Значение сохранено", "info");
+        return { ok: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Ошибка сохранения";
+        showToast(message, "error");
+        return { ok: false, error: message };
+      }
+    },
+    [showToast],
+  );
+
   const handleXmlSavedMessage = useCallback(
     (message: string) => {
       if (message === "Сохранение отменено") {
@@ -481,6 +503,9 @@ export default function App() {
       },
       setDocumentXml: (json: unknown) => {
         bridgeAsync.resolveDocumentXml(parseDocumentXmlPayload(json));
+      },
+      setDocumentFieldSave: (json: unknown) => {
+        bridgeAsync.resolveSaveDocumentField(parseSaveDocumentFieldPayload(json));
       },
       setDocument: (json: unknown) => {
         const { item, error } = parseDocumentPayload(json);
@@ -799,6 +824,7 @@ export default function App() {
         onCommentChange={setCommentDraft}
         onClose={closeModal}
         onCopied={handleCopied}
+        onSaveField={handleSaveDetailField}
       />
 
       <AboutModal
