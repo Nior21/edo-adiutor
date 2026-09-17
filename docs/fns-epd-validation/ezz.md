@@ -1,3 +1,17 @@
-# ЭЗЗ — правила валидации (черновик)
+# ЭЗЗ (EZZ)
 
-**TODO:** таблица реквизитов по XSD и форме 1С. См. [README.md](./README.md).
+## XSD в конфигурации БП
+
+- `{'schema': 'СхемаТитулГрузоотправителя', 'elementCount': 70, 'requiredCount': 0, 'requiredTop': []}`
+- `{'schema': 'СхемаТитулПеревозчика', 'elementCount': 63, 'requiredCount': 0, 'requiredTop': []}`
+
+## Проверки в EDO Adiutor (v0.8.45+)
+
+| Уровень | Примеры |
+|---------|---------|
+| error | ИНН 10/12 цифр |
+| warn | КПП, пустой ID ЭДО, пометка удаления |
+| external | поля с «адрес» — кнопка «Проверить адрес» |
+| ok | заполненные поля без замечаний |
+
+Каталог правил: `rules/field-rules.json`, `rules/shared-checks.json`.

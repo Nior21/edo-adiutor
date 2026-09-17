@@ -1,0 +1,42 @@
+{
+  "docType": "EPL",
+  "doc1c": "ЭлектронныйПутевойЛист",
+  "schemas": [
+    {
+      "schema": "СхемаТитулВыезд",
+      "elementCount": 15,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулВыпуск",
+      "elementCount": 15,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулЗаезд",
+      "elementCount": 14,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулМедосмотр",
+      "elementCount": 19,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулМедосмотрПосле",
+      "elementCount": 19,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулОформление",
+      "elementCount": 58,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}

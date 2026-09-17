@@ -1,0 +1,18 @@
+{
+  "docType": "EDF",
+  "doc1c": "ЭлектронныйДоговорФрахтования",
+  "schemas": [
+    {
+      "schema": "СхемаТитулФрахтователя",
+      "elementCount": 63,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулФрахтовщика",
+      "elementCount": 27,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}

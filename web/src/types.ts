@@ -32,6 +32,26 @@ export function isSimpleDetailFieldKind(kind: DetailFieldValueKind): boolean {
   return kind === "string" || kind === "number" || kind === "boolean" || kind === "date";
 }
 
+export type ValidationLevel = "error" | "warn" | "ok" | "external";
+
+export type ExternalCheckKind = "address" | "inn" | "vehicle";
+
+export type ValidationIssue = {
+  id: string;
+  level: ValidationLevel;
+  message: string;
+  fieldId?: string;
+  fieldLabel?: string;
+  externalCheck?: ExternalCheckKind;
+};
+
+export type ValidationSummary = {
+  errorCount: number;
+  warnCount: number;
+  externalCount: number;
+  ok: boolean;
+};
+
 export type DetailField = {
   group: string;
   label: string;
@@ -39,6 +59,8 @@ export type DetailField = {
   fieldId?: string;
   valueKind?: DetailFieldValueKind;
   editable?: boolean;
+  validationLevel?: ValidationLevel;
+  externalCheck?: ExternalCheckKind;
 };
 
 export type SaveDocumentFieldResult = {
@@ -91,6 +113,8 @@ export type EpdListItem = {
   organizationEdoId?: string;
   detailFields?: DetailField[];
   xmlFiles?: XmlFileItem[];
+  validationIssues?: ValidationIssue[];
+  validationSummary?: ValidationSummary;
 };
 
 export type ListMetaPayload = {

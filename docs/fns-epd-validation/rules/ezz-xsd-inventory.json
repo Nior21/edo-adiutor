@@ -1,0 +1,18 @@
+{
+  "docType": "EZZ",
+  "doc1c": "ЭлектронныйЗаказЗаявка",
+  "schemas": [
+    {
+      "schema": "СхемаТитулГрузоотправителя",
+      "elementCount": 70,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчика",
+      "elementCount": 63,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}

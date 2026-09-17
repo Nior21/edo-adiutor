@@ -24,6 +24,50 @@ const DETAIL_VALUE_KINDS: DetailFieldValueKind[] = [
   "readonly",
 ];
 
+
+const VALIDATION_LEVELS: ValidationLevel[] = ["error", "warn", "ok", "external"];
+
+function normalizeValidationLevel(value: unknown): ValidationLevel | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  return VALIDATION_LEVELS.includes(value as ValidationLevel) ? (value as ValidationLevel) : undefined;
+}
+
+function normalizeValidationIssue(raw: unknown): ValidationIssue | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const issue = raw as Record<string, unknown>;
+  const level = normalizeValidationLevel(issue.level);
+  const message = typeof issue.message === "string" ? issue.message : "";
+  const id = typeof issue.id === "string" ? issue.id : "";
+  if (!level || !message) {
+    return null;
+  }
+  return {
+    id: id || `${level}-${message.slice(0, 24)}`,
+    level,
+    message,
+    fieldId: typeof issue.fieldId === "string" ? issue.fieldId : undefined,
+    fieldLabel: typeof issue.fieldLabel === "string" ? issue.fieldLabel : undefined,
+    externalCheck: issue.externalCheck === "address" ? "address" : undefined,
+  };
+}
+
+function normalizeValidationSummary(raw: unknown): ValidationSummary | undefined {
+  if (!raw || typeof raw !== "object") {
+    return undefined;
+  }
+  const s = raw as Record<string, unknown>;
+  return {
+    errorCount: typeof s.errorCount === "number" ? s.errorCount : Number(s.errorCount) || 0,
+    warnCount: typeof s.warnCount === "number" ? s.warnCount : Number(s.warnCount) || 0,
+    externalCount: typeof s.externalCount === "number" ? s.externalCount : Number(s.externalCount) || 0,
+    ok: Boolean(s.ok),
+  };
+}
+
 function normalizeDetailField(field: DetailField): DetailField {
   const rawKind = field.valueKind;
   const valueKind = DETAIL_VALUE_KINDS.includes(rawKind as DetailFieldValueKind)

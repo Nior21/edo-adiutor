@@ -14,6 +14,27 @@ type DocCellViewProps = {
   onOpenMenu: (x: number, y: number, items: FloatingMenuItem[]) => void;
 };
 
+
+function validationBadge(item: EpdListItem): { className: string; title: string } | null {
+  const summary = item.validationSummary;
+  if (!summary) {
+    return null;
+  }
+  if (summary.errorCount > 0) {
+    return { className: "validation-badge validation-badge-error", title: `Ошибки проверки: ${summary.errorCount}` };
+  }
+  if (summary.warnCount > 0) {
+    return { className: "validation-badge validation-badge-warn", title: `Предупреждения: ${summary.warnCount}` };
+  }
+  if (summary.externalCount > 0) {
+    return { className: "validation-badge validation-badge-external", title: `Нужна внешняя проверка: ${summary.externalCount}` };
+  }
+  if (summary.ok) {
+    return { className: "validation-badge validation-badge-ok", title: "Проверки пройдены" };
+  }
+  return null;
+}
+
 export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
   const handleOpenIn1C = () => {
     openDocument(item.ref, item.docType);
@@ -28,6 +49,7 @@ export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
   const stepTitle = `${stepLabel} - ${stepStatus}`;
 
   const signedSlots = signedSignatureSlots(item);
+  const badge = validationBadge(item);
   const showWorkComment = shouldShowCommentWorkRail(item.comment);
 
   return (
@@ -46,6 +68,7 @@ export function DocCellView({ item, onCopied, onOpenMenu }: DocCellViewProps) {
       </div>
       <div className="doc-cell-body">
         <div className="doc-line doc-line-head">
+          {badge ? <span className={badge.className} title={badge.title} aria-label={badge.title} /> : null}
           <span className="doc-num-wrap">
             №{" "}
             <Copyable

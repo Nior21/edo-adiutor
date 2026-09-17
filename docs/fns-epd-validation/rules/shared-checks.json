@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "checks": {
+    "inn": {
+      "description": "ИНН юр. лица (10) или физ./ИП (12), только цифры",
+      "levels": { "invalid": "error", "emptyWhenName": "warn" }
+    },
+    "kpp": {
+      "description": "КПП — 9 цифр",
+      "levels": { "invalid": "warn" }
+    },
+    "edoId": {
+      "description": "Идентификатор участника ЭДО",
+      "levels": { "emptyWhenName": "warn", "invalidFormat": "warn" }
+    },
+    "uuid": {
+      "description": "УИД Минтранс / UUID",
+      "levels": { "invalid": "warn" }
+    },
+    "base64Signature": {
+      "description": "Электронная подпись в XML (base64)",
+      "levels": { "suspicious": "warn", "emptyWhenRequired": "error" }
+    },
+    "address": {
+      "description": "Адрес — проверка через классификатор",
+      "levels": { "needsExternal": "external" }
+    }
+  }
+}

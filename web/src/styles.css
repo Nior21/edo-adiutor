@@ -2683,3 +2683,44 @@ button:disabled {
   opacity: 0.85;
   word-break: break-all;
 }
+
+
+.validation-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.validation-badge-error { background: #c62828; }
+.validation-badge-warn { background: #ef6c00; }
+.validation-badge-external { background: #1565c0; }
+.validation-badge-ok { background: #2e7d32; }
+
+.detail-field-row.field-validation-error .detail-field-value,
+.detail-field-row.field-validation-error input,
+.detail-field-row.field-validation-error textarea {
+  outline: 1px solid #c62828;
+  background: #ffebee;
+}
+.detail-field-row.field-validation-warn .detail-field-value,
+.detail-field-row.field-validation-warn input,
+.detail-field-row.field-validation-warn textarea {
+  outline: 1px solid #ef6c00;
+  background: #fff3e0;
+}
+.detail-field-row.field-validation-external .detail-field-value {
+  outline: 1px dashed #1565c0;
+}
+.detail-field-row.field-validation-ok .detail-field-value {
+  outline: 1px solid #a5d6a7;
+}
+
+.field-external-check-btn {
+  margin: 4px 0 6px;
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+}

@@ -1,0 +1,24 @@
+{
+  "docType": "ESV",
+  "doc1c": "ЭлектроннаяСопроводительнаяВедомость",
+  "schemas": [
+    {
+      "schema": "СхемаТитулГрузоотправителя",
+      "elementCount": 25,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулГрузополучателя",
+      "elementCount": 22,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчика",
+      "elementCount": 75,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}

@@ -42,6 +42,7 @@ export function DetailFieldRow({ field, onCopied, onOpenMenu, onSaveField }: Det
   const canEdit = Boolean(field.editable && field.fieldId);
   const kind: DetailFieldValueKind = field.valueKind ?? "readonly";
   const simple = isSimpleDetailFieldKind(kind);
+  const validationClass = field.validationLevel ? ` field-validation-${field.validationLevel}` : "";
 
   const startEdit = useCallback(() => {
     if (!canEdit) {
@@ -55,6 +56,12 @@ export function DetailFieldRow({ field, onCopied, onOpenMenu, onSaveField }: Det
     }
     setComplexOpen(true);
   }, [canEdit, field.value, simple]);
+
+  const runExternalCheck = () => {
+    if (field.externalCheck === "address") {
+      window.alert("Проверка адреса через ФИАС/ГАР — заглушка. Будет подключена отдельным релизом.");
+    }
+  };
 
   const menuExtras = canEdit
     ? [
@@ -170,6 +177,11 @@ export function DetailFieldRow({ field, onCopied, onOpenMenu, onSaveField }: Det
 
   return (
     <>
+      {field.externalCheck === "address" ? (
+        <button type="button" className="field-external-check-btn" onClick={runExternalCheck}>
+          Проверить адрес
+        </button>
+      ) : null}
       {emptyDisplay(displayValue) && canEdit ? (
         <span
           className="copyable-empty detail-field-empty-editable"

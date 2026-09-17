@@ -1,0 +1,32 @@
+[
+  {
+    "code": "ETRN",
+    "schemas": 9,
+    "file": "etrn-xsd-inventory.json"
+  },
+  {
+    "code": "EZZ",
+    "schemas": 2,
+    "file": "ezz-xsd-inventory.json"
+  },
+  {
+    "code": "EZN",
+    "schemas": 4,
+    "file": "ezn-xsd-inventory.json"
+  },
+  {
+    "code": "EPL",
+    "schemas": 6,
+    "file": "epl-xsd-inventory.json"
+  },
+  {
+    "code": "ESV",
+    "schemas": 3,
+    "file": "esv-xsd-inventory.json"
+  },
+  {
+    "code": "EDF",
+    "schemas": 2,
+    "file": "edf-xsd-inventory.json"
+  }
+]

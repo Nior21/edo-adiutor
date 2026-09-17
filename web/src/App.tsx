@@ -51,9 +51,14 @@ import { useToast } from "./useToast";
 import { UI_BUILD_VERSION } from "./buildVersion";
 import { compareSemver } from "./semverCompare";
 import type { DetailField, EpdListItem, UpdateInfoPayload, VersionCatalogItem } from "./types";
+import { withClientValidation } from "./validation/epdValidate";
 
 const TABLE_HINT =
   "Клик — карточка. Ctrl/Shift — выделение строк. ПКМ — меню. [!] — метка «в фокус» в комментарии.";
+
+function mapItemsWithValidation(rows: EpdListItem[]): EpdListItem[] {
+  return rows.map((row) => withClientValidation(row));
+}
 
 const TABLE_COLUMNS = ["Документ", "Грузоотправитель", "Перевозчик", "Грузополучатель", ""] as const;
 
@@ -187,7 +192,7 @@ export default function App() {
           }
         },
         onListLoaded: (payload) => {
-          setItems(payload.items ?? []);
+          setItems(mapItemsWithValidation(payload.items ?? []));
         },
       onError: (message) => {
         setLoadProgress(null);
@@ -276,7 +281,7 @@ export default function App() {
               }
             }
           },
-          onListLoaded: (payload) => setItems(payload.items ?? []),
+          onListLoaded: (payload) => setItems(mapItemsWithValidation(payload.items ?? [])),
               onError: (message) => {
             setLoadProgress(null);
             setRefreshActive(false);
@@ -312,9 +317,9 @@ export default function App() {
 
   const applyDocumentPayload = useCallback(
     (payload: EpdListItem) => {
-      setItems((prev) => prev.map((item) => (item.ref === payload.ref ? { ...item, ...payload } : item)));
+      setItems((prev) => prev.map((item) => (item.ref === payload.ref ? withClientValidation({ ...item, ...payload }) : item)));
       if (modalRef === payload.ref) {
-        setModalDoc(payload);
+        setModalDoc(withClientValidation(payload));
         setCommentDraft(payload.comment ?? "");
         setDocLoading(false);
       }
@@ -391,7 +396,7 @@ export default function App() {
       init: (json: unknown) => {
         const payload = parseInitPayload(json);
         setModuleVersion(payload.version);
-        setItems(payload.items ?? []);
+        setItems(mapItemsWithValidation(payload.items ?? []));
         setRefreshActive(false);
         setLoadProgress(null);
         bridgeAsync.resolveListInit(payload);
@@ -554,7 +559,7 @@ export default function App() {
       return;
     }
     setModalRef(ref);
-    setModalDoc(row);
+    setModalDoc(withClientValidation(row));
     setCommentDraft(row.comment ?? "");
     setDocLoading(true);
     requestDocument(ref, row.docType);

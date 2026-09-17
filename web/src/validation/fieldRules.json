@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "party.inn",
+      "scope": "party",
+      "partyKey": ["shipper", "consignee", "carrier"],
+      "check": "inn",
+      "label": "ИНН"
+    },
+    {
+      "id": "party.kpp",
+      "scope": "party",
+      "partyKey": ["shipper", "consignee", "carrier"],
+      "check": "kpp",
+      "label": "КПП"
+    },
+    {
+      "id": "party.edoId",
+      "scope": "party",
+      "partyKey": ["shipper", "consignee", "carrier"],
+      "check": "edoId",
+      "label": "ID ЭДО"
+    },
+    {
+      "id": "doc.uidMintrans",
+      "scope": "field",
+      "matchLabel": ["УИД Минтранс", "UID Минтранс"],
+      "matchFieldId": ["uidMintrans"],
+      "check": "uuid"
+    },
+    {
+      "id": "detail.inn",
+      "scope": "detail",
+      "matchLabelContains": ["ИНН"],
+      "check": "inn"
+    },
+    {
+      "id": "detail.kpp",
+      "scope": "detail",
+      "matchLabelContains": ["КПП"],
+      "check": "kpp"
+    },
+    {
+      "id": "detail.signature",
+      "scope": "detail",
+      "matchLabelContains": ["ЭлектроннаяПодпись", "Электронная подпись", "Подпись"],
+      "check": "base64Signature"
+    },
+    {
+      "id": "detail.address",
+      "scope": "detail",
+      "matchLabelContains": ["Адрес", "address"],
+      "check": "address"
+    },
+    {
+      "id": "etrn.waybillNumber",
+      "scope": "docType",
+      "docTypes": ["ЭТРН", "ETRN"],
+      "check": "waybillNumberMatch",
+      "level": "warn"
+    },
+    {
+      "id": "doc.deletionMark",
+      "scope": "doc",
+      "check": "deletionMark",
+      "level": "warn"
+    },
+    {
+      "id": "doc.edoExchange",
+      "scope": "doc",
+      "check": "edoExchangeNotAccepted",
+      "level": "warn"
+    }
+  ]
+}

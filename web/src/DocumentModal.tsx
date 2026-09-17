@@ -430,7 +430,10 @@ export function DocumentModal({
               <h4 className="modal-subtitle">{group}</h4>
               <dl className="details-grid">
                 {fields.map((field) => (
-                  <div className="details-grid-pair" key={`${group}-${field.label}-${field.value}`}>
+                  <div
+                    className={`details-grid-pair detail-field-row${field.validationLevel ? ` field-validation-${field.validationLevel}` : ""}`}
+                    key={`${group}-${field.label}-${field.value}`}
+                  >
                     <dt>{field.label}</dt>
                     <dd>
                       <DetailFieldRow

@@ -1,0 +1,60 @@
+{
+  "docType": "ETRN",
+  "doc1c": "ЭлектроннаяТранспортнаяНакладная",
+  "schemas": [
+    {
+      "schema": "СхемаТитулГрузоотправителя",
+      "elementCount": 108,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулГрузоотправителяФХЖ",
+      "elementCount": 20,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулГрузополучателя",
+      "elementCount": 34,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПереадресовка",
+      "elementCount": 44,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчикаВыдача",
+      "elementCount": 22,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчикаЗамены",
+      "elementCount": 36,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчикаПриемка",
+      "elementCount": 22,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулПеревозчикаФХЖ",
+      "elementCount": 23,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулУказаниеПереадрес",
+      "elementCount": 70,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "docType": "EZN",
+  "doc1c": "ЭлектронныйЗаказНаряд",
+  "schemas": [
+    {
+      "schema": "СхемаТитулФрахтователя",
+      "elementCount": 57,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулФрахтователяПодача",
+      "elementCount": 20,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулФрахтовщика",
+      "elementCount": 41,
+      "requiredCount": 0,
+      "requiredTop": []
+    },
+    {
+      "schema": "СхемаТитулФрахтовщикаВозврат",
+      "elementCount": 25,
+      "requiredCount": 0,
+      "requiredTop": []
+    }
+  ]
+}
