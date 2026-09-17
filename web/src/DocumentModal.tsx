@@ -12,7 +12,7 @@ import { useFloatingMenu } from "./FloatingMenu";
 
 
 import type { DetailField, EpdListItem } from "./types";
-import { fetchDocumentXml } from "./bridgeAsync";
+import { fetchDocumentXml, saveDocumentXmlFile } from "./bridgeAsync";
 import { downloadBase64File } from "./downloadBase64";
 
 
@@ -389,13 +389,23 @@ export function DocumentModal({
                   onClick={() => {
                     void (async () => {
                       try {
-                        const payload = await fetchDocumentXml(item.ref, item.docType, file.fileRef);
+                        const savePayload = await saveDocumentXmlFile(item.ref, item.docType, file.fileRef);
+                        if (savePayload.success && savePayload.savedOnClient) {
+                          onCopied(`Файл сохранён: ${savePayload.fileName || file.fileName}`);
+                          return;
+                        }
+                        const payload =
+                          savePayload.success && savePayload.dataBase64
+                            ? savePayload
+                            : await fetchDocumentXml(item.ref, item.docType, file.fileRef);
                         if (!payload.success || !payload.dataBase64) {
-                          onCopied(payload.error || "Не удалось получить XML");
+                          onCopied(payload.error || savePayload.error || "Не удалось получить XML");
                           return;
                         }
                         downloadBase64File(payload.dataBase64, payload.fileName || file.fileName);
-                        onCopied(`Скачан ${payload.fileName || file.fileName}`);
+                        onCopied(
+                          `Загрузки: «${payload.fileName || file.fileName}» — обычно папка «Загрузки» браузера (в веб-клиенте 1С диалог «Сохранить как» может быть недоступен)`,
+                        );
                       } catch (error) {
                         onCopied(error instanceof Error ? error.message : "Ошибка загрузки XML");
                       }

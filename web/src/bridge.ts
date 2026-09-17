@@ -110,6 +110,10 @@ export function requestDocumentXml(ref: string, docType: string, fileRef: string
   call1C({ action: "getDocumentXml", ref, docType, fileRef });
 }
 
+export function requestSaveDocumentXml(ref: string, docType: string, fileRef: string): void {
+  call1C({ action: "saveDocumentXml", ref, docType, fileRef });
+}
+
 export function requestDocument(ref: string, docType: string): void {
   call1C({ action: "getDocument", ref, docType });
 }

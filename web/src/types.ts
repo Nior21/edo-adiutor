@@ -13,6 +13,7 @@ export type DocumentXmlPayload = {
   success: boolean;
   fileName: string;
   dataBase64: string;
+  savedOnClient?: boolean;
   error?: string;
 };
 

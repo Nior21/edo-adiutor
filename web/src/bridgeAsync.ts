@@ -1,4 +1,4 @@
-import {
+import { requestSaveDocumentXml,
   call1C,
   requestEdoDiagnosticsLocal,
   requestEdoDiagnosticsOnline,
@@ -125,6 +125,12 @@ export const bridgeAsync = {
     fail(onlineIdsSlot, message);
   },
 };
+
+export async function saveDocumentXmlFile(ref: string, docType: string, fileRef: string): Promise<DocumentXmlPayload> {
+  const promise = armPendingWithTimeout(documentXmlSlot, "saveDocumentXml", BRIDGE_TIMEOUT_MS);
+  requestSaveDocumentXml(ref, docType, fileRef);
+  return promise;
+}
 
 export async function fetchDocumentXml(ref: string, docType: string, fileRef: string): Promise<DocumentXmlPayload> {
   const promise = armPendingWithTimeout(documentXmlSlot, "getDocumentXml", BRIDGE_TIMEOUT_MS);

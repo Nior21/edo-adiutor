@@ -279,6 +279,14 @@ export default function App() {
 
   const handleCopied = useCallback(
     (value: string) => {
+      if (
+        value.startsWith("Скачан:") ||
+        value.startsWith("Файл сохранён:") ||
+        value.startsWith("Загрузки:")
+      ) {
+        showToast(value);
+        return;
+      }
       const preview = value.length > 48 ? `${value.slice(0, 48)}…` : value;
       showToast(`Скопировано: ${preview}`);
     },
