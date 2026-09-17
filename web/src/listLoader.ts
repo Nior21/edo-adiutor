@@ -1,22 +1,17 @@
-import { fetchListMeta, fetchListPage } from "./bridgeAsync";
-import { yieldToBrowser } from "./bridge";
-import type { EpdListItem } from "./types";
-
-/** Строк за один запрос к 1С (лимит на сервере — 50). */
-export const LIST_PAGE_SIZE = 50;
+import { fetchRegistryList } from "./bridgeAsync";
+import type { EpdListItem, InitPayload } from "./types";
 
 export type ListLoadProgress = {
-  phase: "meta" | "pages" | "done";
+  phase: "fetch" | "done";
   loaded: number;
   total: number;
-  /** Идёт запрос очередной страницы (показываем skeleton). */
   fetchingRow: boolean;
 };
 
 export type ListLoadCallbacks = {
   onProgress: (progress: ListLoadProgress) => void;
   onVersion: (version: string) => void;
-  onAppendPage: (items: EpdListItem[]) => void;
+  onListLoaded: (payload: InitPayload) => void;
   onError: (message: string) => void;
 };
 
@@ -26,81 +21,26 @@ export function cancelListLoad(): void {
   loadGeneration += 1;
 }
 
-function report(
-  callbacks: ListLoadCallbacks,
-  progress: ListLoadProgress,
-): void {
-  callbacks.onProgress(progress);
-}
-
+/** Один запрос getList → edoInit (как типовой список в 1С, без пагинации по мосту). */
 export async function loadRegistryPaginated(callbacks: ListLoadCallbacks): Promise<void> {
   const generation = ++loadGeneration;
-
   const alive = () => generation === loadGeneration;
 
   try {
-    report(callbacks, { phase: "meta", loaded: 0, total: 0, fetchingRow: false });
+    callbacks.onProgress({ phase: "fetch", loaded: 0, total: 0, fetchingRow: true });
 
-    const meta = await fetchListMeta();
+    const payload = await fetchRegistryList();
     if (!alive()) {
       return;
     }
 
-    callbacks.onVersion(meta.version);
-    report(callbacks, { phase: "pages", loaded: 0, total: meta.total, fetchingRow: false });
-
-    if (meta.total === 0) {
-      report(callbacks, { phase: "done", loaded: 0, total: 0, fetchingRow: false });
-      return;
-    }
-
-    let offset = 0;
-
-    while (offset < meta.total) {
-      await yieldToBrowser();
-      if (!alive()) {
-        return;
-      }
-
-      report(callbacks, {
-        phase: "pages",
-        loaded: offset,
-        total: meta.total,
-        fetchingRow: true,
-      });
-
-      const page = await fetchListPage(offset, LIST_PAGE_SIZE);
-      if (!alive()) {
-        return;
-      }
-
-      if (page.items.length === 0) {
-        break;
-      }
-
-      callbacks.onAppendPage(page.items);
-      offset += page.items.length;
-
-      report(callbacks, {
-        phase: "pages",
-        loaded: offset,
-        total: page.total || meta.total,
-        fetchingRow: offset < meta.total,
-      });
-
-      if (page.items.length < LIST_PAGE_SIZE) {
-        break;
-      }
-    }
-
-    if (!alive()) {
-      return;
-    }
-
-    report(callbacks, {
+    const items = payload.items ?? [];
+    callbacks.onVersion(payload.version);
+    callbacks.onListLoaded(payload);
+    callbacks.onProgress({
       phase: "done",
-      loaded: offset,
-      total: meta.total,
+      loaded: items.length,
+      total: items.length,
       fetchingRow: false,
     });
   } catch (error) {

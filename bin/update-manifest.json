@@ -1,5 +1,5 @@
 {
-  "version": "0.8.36",
-  "epfUrl": "https://github.com/Nior21/edo-adiutor/releases/download/v0.8.36/EdoAdiutor.epf",
-  "notes": "Compile fix web client and struct"
+  "version": "0.8.38",
+  "epfUrl": "https://github.com/Nior21/edo-adiutor/releases/0.8.38/ПомощникДляЭДО.epf",
+  "notes": "v0.8.38: быстрый реестр одним getList, параллельная проверка обновлений. Веб: обновление без Подключить с клиента (серверное переподключение + React). Карточка ЭТрН: все заполненные реквизиты и табличные части Титул."
 }

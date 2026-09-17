@@ -5,6 +5,7 @@ import {
   requestEnrichRows,
   requestListMeta,
   requestListPage,
+  requestRegistryList,
   yieldToBrowser,
 } from "./bridge";
 import type {
@@ -13,6 +14,7 @@ import type {
   EnrichRowsPayload,
   ListMetaPayload,
   ListPagePayload,
+  InitPayload,
 } from "./types";
 
 const BRIDGE_TIMEOUT_MS = 120_000;
@@ -47,6 +49,9 @@ function armPendingWithTimeout<T>(
   });
 }
 
+
+const listInitSlot = { current: null as Pending<InitPayload> | null };
+
 const metaSlot = { current: null as Pending<ListMetaPayload> | null };
 const pageSlot = { current: null as Pending<ListPagePayload> | null };
 const enrichSlot = { current: null as Pending<EnrichRowsPayload> | null };
@@ -78,7 +83,14 @@ export const bridgeAsync = {
   rejectListMeta(message: string): void {
     fail(metaSlot, message);
   },
+  resolveListInit(payload: InitPayload): void {
+    settle(listInitSlot, payload);
+  },
+  rejectListInit(message: string): void {
+    fail(listInitSlot, message);
+  },
   resolveListPage(payload: ListPagePayload): void {
+
     settle(pageSlot, payload);
   },
   rejectListPage(message: string): void {
@@ -103,6 +115,13 @@ export const bridgeAsync = {
     fail(onlineIdsSlot, message);
   },
 };
+
+export async function fetchRegistryList(): Promise<InitPayload> {
+  const promise = armPendingWithTimeout(listInitSlot, "getList", BRIDGE_TIMEOUT_MS);
+  await yieldToBrowser(16);
+  requestRegistryList();
+  return promise;
+}
 
 export async function fetchListMeta(): Promise<ListMetaPayload> {
   const promise = armPendingWithTimeout(metaSlot, "getListMeta", BRIDGE_TIMEOUT_MS);

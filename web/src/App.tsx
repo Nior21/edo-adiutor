@@ -155,7 +155,7 @@ export default function App() {
     cancelListLoad();
     setItems([]);
     setLoadProgress({
-      phase: "meta",
+      phase: "fetch",
       loaded: 0,
       total: 0,
       fetchingRow: false,
@@ -172,8 +172,8 @@ export default function App() {
             }
           }
         },
-        onAppendPage: (pageItems) => {
-          setItems((prev) => [...prev, ...pageItems]);
+        onListLoaded: (payload) => {
+          setItems(payload.items ?? []);
         },
       onError: (message) => {
         setLoadProgress(null);
@@ -245,7 +245,7 @@ export default function App() {
         cancelListLoad();
         setItems([]);
         setLoadProgress({
-          phase: "meta",
+          phase: "fetch",
           loaded: 0,
           total: 0,
           fetchingRow: false,
@@ -262,7 +262,7 @@ export default function App() {
               }
             }
           },
-          onAppendPage: (pageItems) => setItems((prev) => [...prev, ...pageItems]),
+          onListLoaded: (payload) => setItems(payload.items ?? []),
               onError: (message) => {
             setLoadProgress(null);
             setRefreshActive(false);
@@ -322,7 +322,7 @@ export default function App() {
         setItems(payload.items ?? []);
         setRefreshActive(false);
         setLoadProgress(null);
-        showToast(`Загружено документов: ${payload.items?.length ?? 0}`);
+        bridgeAsync.resolveListInit(payload);
       },
       setListMeta: (json: unknown) => {
         const { meta, error } = parseListMetaPayload(json);
@@ -447,6 +447,7 @@ export default function App() {
         showToast(message);
       },
       setError: (message: string) => {
+        bridgeAsync.rejectListInit(message);
         setUpdateChecking(false);
         setUpdateApplying(false);
         pendingVersionPicker.current = false;
@@ -458,6 +459,8 @@ export default function App() {
     });
 
     notifyReady();
+    beginDataLoadIfNeeded();
+    requestCheckUpdate();
 
     return () => {
       cancelListLoad();

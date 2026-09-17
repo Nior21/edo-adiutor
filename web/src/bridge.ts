@@ -86,6 +86,10 @@ export function notifyReady(): void {
   call1C({ action: "ready" });
 }
 
+export function requestRegistryList(): void {
+  call1C({ action: "getList" });
+}
+
 export function requestListMeta(): void {
   call1C({ action: "getListMeta" });
 }
